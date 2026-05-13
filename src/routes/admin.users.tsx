@@ -1,0 +1,275 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { 
+  Search, Ban, RefreshCw, Trash2, Loader2, ShieldCheck, 
+  User as UserIcon, Eye, X, Mail, Calendar, Shield, Activity,
+  CheckCircle2, AlertCircle
+} from "lucide-react";
+import { PageHeader, Card, Badge, Btn } from "@/components/admin/ui";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+
+export const Route = createFileRoute("/admin/users")({ component: UsersPage });
+
+function UsersPage() {
+  const [q, setQ] = useState("");
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const queryClient = useQueryClient();
+  
+  const { data: users, isLoading } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: api.admin.getUsers,
+  });
+
+  const updateUser = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => api.admin.updateUser(id, data),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success(res.msg);
+      setSelectedUser(null);
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const deleteUser = useMutation({
+    mutationFn: (id: number) => api.admin.deleteUser(id),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success(res.msg);
+      setSelectedUser(null);
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const filtered = users?.filter((u: any) => 
+    u.username.toLowerCase().includes(q.toLowerCase()) || 
+    u.email.toLowerCase().includes(q.toLowerCase())
+  ) || [];
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <PageHeader title="Users" subtitle="Manage all registered users and their permissions." />
+      <Card>
+        <div className="mb-5 flex items-center gap-3">
+          <div className="relative max-w-sm flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search users..."
+              className="w-full rounded-lg border border-border/60 bg-background/40 py-2 pl-9 pr-3 text-sm outline-none focus:border-primary/50 transition-all focus:bg-background/60" />
+          </div>
+          <select className="rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-sm outline-none cursor-pointer hover:bg-background/60 transition-all">
+            <option>All statuses</option><option>Active</option><option>Banned</option>
+          </select>
+        </div>
+        
+        <div className="scrollbar-thin overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
+              <tr className="border-b border-border/60">
+                <th className="py-3 pr-4 font-bold">User</th>
+                <th className="px-4 font-bold">Role</th>
+                <th className="px-4 font-bold">Joined</th>
+                <th className="px-4 font-bold">Status</th>
+                <th className="pl-4 text-right font-bold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((u: any) => (
+                <tr key={u.id} className="border-b border-border/40 transition-colors hover:bg-white/[0.02]">
+                  <td className="py-3 pr-4">
+                    <div className="flex items-center gap-3">
+                      <div className="relative group/avatar">
+                        {u.avatar_url ? (
+                          <img src={u.avatar_url} alt={u.username} className="h-10 w-10 rounded-full object-cover border border-white/10 shadow-lg" />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-xs font-bold text-primary-foreground shadow-lg">
+                            {u.username[0].toUpperCase()}
+                          </div>
+                        )}
+                        <div className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-zinc-900 border border-white/20 shadow-md">
+                          <svg className="h-2 w-2 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-white">{u.username}</span>
+                          <div className="flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-1.5 py-0.5 shadow-sm">
+                            <svg className="h-2 w-2" viewBox="0 0 24 24">
+                              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.28 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                            </svg>
+                            <span className="text-[8px] font-black text-primary uppercase tracking-tighter">Verified</span>
+                          </div>
+                        </div>
+                        <div className="text-[11px] text-zinc-500 font-medium">{u.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4">
+                    <div className="flex items-center gap-1.5">
+                      {u.role === "admin" ? <ShieldCheck size={14} className="text-primary" /> : <UserIcon size={14} className="text-zinc-500" />}
+                      <span className={`text-xs font-bold uppercase tracking-wider ${u.role === "admin" ? "text-primary" : "text-zinc-400"}`}>
+                        {u.role}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 text-xs text-muted-foreground font-medium">{new Date(u.created_at).toLocaleDateString()}</td>
+                  <td className="px-4">
+                    <Badge tone={u.is_active ? "primary" : "danger"} className="font-bold">
+                      {u.is_active ? "Active" : "Banned"}
+                    </Badge>
+                  </td>
+                  <td className="pl-4">
+                    <div className="flex justify-end gap-1">
+                      <Btn 
+                        variant="ghost" 
+                        title="User Preview" 
+                        onClick={() => setSelectedUser(u)}
+                      >
+                        <Eye size={12} />
+                      </Btn>
+                      <Btn 
+                        variant="ghost" 
+                        title="Delete User"
+                        className="hover:bg-red-500/10 hover:text-red-500"
+                        onClick={() => {
+                          if (confirm("Are you sure you want to delete this user?")) {
+                            deleteUser.mutate(u.id);
+                          }
+                        }}
+                        disabled={deleteUser.isPending}
+                      >
+                        <Trash2 size={12} />
+                      </Btn>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-muted-foreground font-medium">No users found match your search</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <AnimatePresence>
+        {selectedUser && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setSelectedUser(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-md" 
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 p-6 shadow-2xl"
+            >
+              <button onClick={() => setSelectedUser(null)} className="absolute right-4 top-4 text-zinc-500 hover:text-white transition-colors">
+                <X size={20} />
+              </button>
+
+              <div className="mb-6 flex flex-col items-center text-center">
+                <div className="relative mb-4">
+                  {selectedUser.avatar_url ? (
+                    <img src={selectedUser.avatar_url} className="h-20 w-20 rounded-full border-2 border-primary/20 shadow-xl" />
+                  ) : (
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-2xl font-bold text-primary-foreground shadow-xl">
+                      {selectedUser.username[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 border-2 border-zinc-950 shadow-lg">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.28 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-white">{selectedUser.username}</h3>
+                <div className="flex items-center gap-1.5 text-sm text-zinc-400 mt-1">
+                  <Mail size={14} /> {selectedUser.email}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3 border border-white/[0.05]">
+                  <div className="flex items-center gap-2 text-zinc-400 text-xs">
+                    <Shield size={14} /> Role
+                  </div>
+                  <button 
+                    onClick={() => updateUser.mutate({ id: selectedUser.id, data: { role: selectedUser.role === 'admin' ? 'user' : 'admin' }})}
+                    className="flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-1 text-xs font-bold text-primary border border-primary/20 hover:bg-primary/20 transition-all"
+                  >
+                    <RefreshCw size={12} className={updateUser.isPending ? "animate-spin" : ""} />
+                    {selectedUser.role.toUpperCase()}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3 border border-white/[0.05]">
+                  <div className="flex items-center gap-2 text-zinc-400 text-xs">
+                    <Activity size={14} /> Status
+                  </div>
+                  <button 
+                    onClick={() => updateUser.mutate({ id: selectedUser.id, data: { is_active: !selectedUser.is_active }})}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-bold border transition-all ${selectedUser.is_active ? 'bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20'}`}
+                  >
+                    <Ban size={12} />
+                    {selectedUser.is_active ? "ACTIVE" : "BANNED"}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3 border border-white/[0.05]">
+                  <div className="flex items-center gap-2 text-zinc-400 text-xs">
+                    <Calendar size={14} /> Joined On
+                  </div>
+                  <div className="text-xs font-medium text-white">
+                    {new Date(selectedUser.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-white/5 flex gap-3">
+                <button 
+                  onClick={() => setSelectedUser(null)}
+                  className="flex-1 rounded-xl bg-zinc-900 py-2.5 text-xs font-bold text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all"
+                >
+                  Close Preview
+                </button>
+                <button 
+                  onClick={() => {
+                    if (confirm("Permanently delete this user? This cannot be undone.")) {
+                      deleteUser.mutate(selectedUser.id);
+                    }
+                  }}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-red-500/10 px-4 py-2.5 text-xs font-bold text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
