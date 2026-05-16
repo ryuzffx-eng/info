@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Edit, Trash2, Sparkles, Loader2, X, PlusCircle } from "lucide-react";
-import { PageHeader, Card, Badge, Btn } from "@/components/admin/ui";
+import { Plus, Edit, Trash2, Sparkles, Loader2, X, PlusCircle, Image as ImageIcon } from "lucide-react";
+import { PageHeader, Card, Badge, Btn, ConfirmModal } from "@/components/admin/ui";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useState } from "react";
@@ -13,12 +13,14 @@ function ProductsAdmin() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [isCustomCat, setIsCustomCat] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
   const [form, setForm] = useState({ 
     name: "", 
     price: 0, 
     description: "", 
     category_id: 1, 
-    new_category_name: "" 
+    new_category_name: "",
+    image_url: "" 
   });
 
   const { data: products, isLoading } = useQuery({
@@ -47,7 +49,7 @@ function ProductsAdmin() {
       toast.success("Product added successfully");
       setOpen(false);
       setIsCustomCat(false);
-      setForm({ name: "", price: 0, description: "", category_id: 1, new_category_name: "" });
+      setForm({ name: "", price: 0, description: "", category_id: 1, new_category_name: "", image_url: "" });
     },
     onError: (err: any) => toast.error(err.message)
   });
@@ -57,6 +59,7 @@ function ProductsAdmin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       toast.success("Product deleted");
+      setDeleteId(null);
     },
     onError: (err: any) => toast.error(err.message)
   });
@@ -77,9 +80,13 @@ function ProductsAdmin() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {products?.map((p: any) => (
           <Card key={p.id} className="overflow-hidden !p-0 group">
-            <div className={`relative flex h-32 items-center justify-center bg-gradient-to-br from-emerald-400/20 to-teal-500/10 border-b border-white/5 overflow-hidden`}>
+            <div className={`relative flex h-40 items-center justify-center bg-gradient-to-br from-emerald-400/20 to-teal-500/10 border-b border-white/5 overflow-hidden`}>
               <div className="absolute inset-0 grid-bg opacity-20" />
-              <Sparkles size={36} className="text-primary/60 group-hover:scale-110 transition-transform duration-500" />
+              {p.image_url ? (
+                <img src={p.image_url} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              ) : (
+                <Sparkles size={48} className="text-primary/60 group-hover:scale-110 transition-transform duration-500" />
+              )}
               <div className="absolute right-3 top-3">
                 <Badge tone={p.status ? "primary" : "muted"}>
                   <span className="mr-1">●</span>{p.status ? "Active" : "Inactive"}
@@ -101,14 +108,10 @@ function ProductsAdmin() {
                 <Btn 
                   variant="ghost" 
                   className="h-9 w-9 p-0 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                  onClick={() => {
-                    if (confirm(`Are you sure you want to delete ${p.name}?`)) {
-                      deleteMutation.mutate(p.id);
-                    }
-                  }}
+                  onClick={() => setDeleteId(p.id)}
                   disabled={deleteMutation.isPending}
                 >
-                  {deleteMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                  {deleteMutation.isPending && deleteId === p.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                 </Btn>
               </div>
             </div>
@@ -116,13 +119,23 @@ function ProductsAdmin() {
         ))}
       </div>
 
+      {/* Delete Confirmation */}
+      <ConfirmModal 
+        isOpen={!!deleteId} 
+        onClose={() => setDeleteId(null)} 
+        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        title="Delete Product"
+        message="Are you sure you want to remove this product? this action cannot be undone."
+        loading={deleteMutation.isPending}
+      />
+
       <AnimatePresence>
         {open && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
             className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-xl">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-strong w-full max-w-md rounded-2xl p-7 shadow-2xl border border-white/10">
+              className="glass-strong w-full max-w-md rounded-2xl p-7 shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto scrollbar-thin">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-bold tracking-tight">Add New Product</h3>
@@ -160,6 +173,15 @@ function ProductsAdmin() {
                         {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                     )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Image URL (Optional)</label>
+                  <div className="relative">
+                    <ImageIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://example.com/image.png" 
+                      className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 py-3 pl-9 pr-4 text-sm outline-none focus:border-primary/50 transition-colors" />
                   </div>
                 </div>
 
