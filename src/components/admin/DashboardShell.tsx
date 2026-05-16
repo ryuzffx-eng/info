@@ -61,10 +61,10 @@ export function DashboardShell({ children, variant = "admin" }: { children: Reac
 
   return (
     <div className="relative min-h-screen bg-background selection:bg-primary/30 selection:text-primary-foreground text-foreground font-sans overflow-hidden">
-      {/* Background Grid & Glows (Synced with global styles) */}
+      {/* Background Grid & Glows (Synced with global styles variables) */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 grid-bg opacity-[0.2] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(62,207,142,0.1),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,var(--primary-glow),transparent_60%)]" />
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
