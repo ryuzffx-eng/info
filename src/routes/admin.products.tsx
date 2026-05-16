@@ -52,6 +52,15 @@ function ProductsAdmin() {
     onError: (err: any) => toast.error(err.message)
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.marketplace.deleteProduct(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      toast.success("Product deleted");
+    },
+    onError: (err: any) => toast.error(err.message)
+  });
+
   if (isLoading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
@@ -67,10 +76,10 @@ function ProductsAdmin() {
       
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {products?.map((p: any) => (
-          <Card key={p.id} className="overflow-hidden !p-0">
-            <div className={`relative flex h-32 items-center justify-center bg-gradient-to-br from-emerald-400/20 to-teal-500/10 border-b border-white/5`}>
+          <Card key={p.id} className="overflow-hidden !p-0 group">
+            <div className={`relative flex h-32 items-center justify-center bg-gradient-to-br from-emerald-400/20 to-teal-500/10 border-b border-white/5 overflow-hidden`}>
               <div className="absolute inset-0 grid-bg opacity-20" />
-              <Sparkles size={36} className="text-primary/60" />
+              <Sparkles size={36} className="text-primary/60 group-hover:scale-110 transition-transform duration-500" />
               <div className="absolute right-3 top-3">
                 <Badge tone={p.status ? "primary" : "muted"}>
                   <span className="mr-1">●</span>{p.status ? "Active" : "Inactive"}
@@ -89,7 +98,18 @@ function ProductsAdmin() {
               </div>
               <div className="mt-4 flex gap-2">
                 <Btn variant="outline" className="flex-1 justify-center h-9 text-xs"><Edit size={12} /> Edit</Btn>
-                <Btn variant="ghost" className="h-9 w-9 p-0 flex items-center justify-center text-muted-foreground hover:text-destructive"><Trash2 size={12} /></Btn>
+                <Btn 
+                  variant="ghost" 
+                  className="h-9 w-9 p-0 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                  onClick={() => {
+                    if (confirm(`Are you sure you want to delete ${p.name}?`)) {
+                      deleteMutation.mutate(p.id);
+                    }
+                  }}
+                  disabled={deleteMutation.isPending}
+                >
+                  {deleteMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                </Btn>
               </div>
             </div>
           </Card>

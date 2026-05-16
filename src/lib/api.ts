@@ -63,6 +63,7 @@ export const api = {
     createCategory: (data: any) => apiFetch("/store/categories", { method: "POST", body: JSON.stringify(data) }),
     getReviews: (productId?: number) => apiFetch(`/store/reviews${productId ? `?product_id=${productId}` : ""}`),
     createReview: (data: any) => apiFetch("/store/reviews", { method: "POST", body: JSON.stringify(data) }),
+    deleteProduct: (id: number) => apiFetch(`/store/products/${id}`, { method: "DELETE" }),
   },
   admin: {
     getApplications: () => apiFetch("/admin/applications"),
