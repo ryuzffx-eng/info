@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemo, useState } from "react";
-import { Search, Sparkles, X, Check, Star, Loader2, Tag } from "lucide-react";
+import { Search, Sparkles, X, Check, Star, Loader2, Tag, Lock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
@@ -83,8 +83,18 @@ function Marketplace() {
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {list.map((p, i) => (
           <motion.div key={p.id} layout initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-            onClick={() => setActive(p)}
-            className="group relative cursor-pointer overflow-hidden rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-[var(--shadow-neon)]">
+            onClick={() => p.status && setActive(p)}
+            className={`group relative overflow-hidden rounded-2xl border transition-all ${p.status ? "cursor-pointer border-border/60 bg-card/40 backdrop-blur-xl hover:-translate-y-1 hover:border-primary/40 hover:shadow-[var(--shadow-neon)]" : "opacity-60 grayscale-[0.5] border-border/30 bg-card/20 cursor-not-allowed"}`}>
+            
+            {!p.status && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/40 backdrop-blur-[1px]">
+                <div className="bg-red-500/10 border border-red-500/20 rounded-full p-3 text-red-500 mb-2">
+                  <Lock size={24} />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Temporarily Offline</span>
+              </div>
+            )}
+
             <div className={`relative h-44 bg-gradient-to-br ${getProductColor(p.id)} border-b border-white/5 flex items-center justify-center overflow-hidden`}>
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,oklch(1_0_0_/_0.15),transparent_70%)]" />
               
@@ -110,7 +120,12 @@ function Marketplace() {
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{p.status ? "Online" : "Offline"}</div>
                   </div>
                 </div>
-                <button className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition-all hover:scale-105 active:scale-95">Buy now</button>
+                <button 
+                  disabled={!p.status}
+                  className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${p.status ? "bg-primary text-primary-foreground shadow-[var(--shadow-glow)] hover:scale-105 active:scale-95" : "bg-muted/20 text-muted-foreground cursor-not-allowed"}`}
+                >
+                  {p.status ? "Buy now" : "Unavailable"}
+                </button>
               </div>
             </div>
           </motion.div>
