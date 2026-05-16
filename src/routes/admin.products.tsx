@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Edit, Trash2, Sparkles, Loader2, X, PlusCircle, Image as ImageIcon, Tag, ChevronDown } from "lucide-react";
+import { Plus, Edit, Trash2, Sparkles, Loader2, X, PlusCircle, Image as ImageIcon, Tag, ChevronDown, CheckCircle2 } from "lucide-react";
 import { PageHeader, Card, Badge, Btn, ConfirmModal } from "@/components/admin/ui";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/admin/products")({ component: ProductsAdm
 function ProductsAdmin() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editProduct, setEditProduct] = useState<any>(null);
   const [isCustomCat, setIsCustomCat] = useState(false);
   const [isCatSelectOpen, setIsCatSelectOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -21,7 +22,8 @@ function ProductsAdmin() {
     description: "", 
     category_id: 1, 
     new_category_name: "",
-    image_url: "" 
+    image_url: "",
+    status: true
   });
 
   const { data: products, isLoading } = useQuery({
@@ -34,9 +36,32 @@ function ProductsAdmin() {
     queryFn: () => api.marketplace.getCategories(),
   });
 
+  // Populate form when editing
+  useEffect(() => {
+    if (editProduct) {
+      setForm({
+        name: editProduct.name,
+        price: editProduct.price,
+        description: editProduct.description,
+        category_id: editProduct.category_id,
+        new_category_name: "",
+        image_url: editProduct.image_url || "",
+        status: editProduct.status
+      });
+      setIsCustomCat(false);
+    } else {
+      setForm({ name: "", price: 0, description: "", category_id: categories[0]?.id || 1, new_category_name: "", image_url: "", status: true });
+    }
+  }, [editProduct, categories]);
+
   const mutation = useMutation({
     mutationFn: (data: any) => {
       const payload = { ...data };
+      if (editProduct) {
+        delete payload.new_category_name;
+        return api.marketplace.updateProduct(editProduct.id, payload);
+      }
+      
       if (!isCustomCat) {
         delete payload.new_category_name;
       } else {
@@ -47,11 +72,11 @@ function ProductsAdmin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
-      toast.success("Product added successfully");
+      toast.success(editProduct ? "Product updated" : "Product added");
       setOpen(false);
+      setEditProduct(null);
       setIsCustomCat(false);
       setIsCatSelectOpen(false);
-      setForm({ name: "", price: 0, description: "", category_id: 1, new_category_name: "", image_url: "" });
     },
     onError: (err: any) => toast.error(err.message)
   });
@@ -66,6 +91,11 @@ function ProductsAdmin() {
     onError: (err: any) => toast.error(err.message)
   });
 
+  const handleOpen = (product?: any) => {
+    setEditProduct(product || null);
+    setOpen(true);
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
@@ -77,7 +107,7 @@ function ProductsAdmin() {
   return (
     <div>
       <PageHeader title="Products" subtitle="Manage your marketplace catalog."
-        action={<Btn onClick={() => setOpen(true)}><Plus size={14} /> Add product</Btn>} />
+        action={<Btn onClick={() => handleOpen()}><Plus size={14} /> Add product</Btn>} />
       
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {products?.map((p: any) => (
@@ -109,7 +139,7 @@ function ProductsAdmin() {
                 <div className="font-display text-xl font-bold neon-text">${p.price}</div>
               </div>
               <div className="mt-4 flex gap-2">
-                <Btn variant="outline" className="flex-1 justify-center h-9 text-xs"><Edit size={12} /> Edit</Btn>
+                <Btn variant="outline" className="flex-1 justify-center h-9 text-xs" onClick={() => handleOpen(p)}><Edit size={12} /> Edit</Btn>
                 <Btn 
                   variant="ghost" 
                   className="h-9 w-9 p-0 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
@@ -143,8 +173,8 @@ function ProductsAdmin() {
               className="glass-strong w-full max-w-md rounded-2xl p-7 shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto scrollbar-none">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h3 className="text-xl font-bold tracking-tight">Add New Product</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">List a new software to the catalog.</p>
+                  <h3 className="text-xl font-bold tracking-tight">{editProduct ? "Edit Product" : "Add New Product"}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{editProduct ? `Modifying ${editProduct.name}` : "List a new software to the catalog."}</p>
                 </div>
                 <button onClick={() => setOpen(false)} className="rounded-lg p-2 hover:bg-card transition-colors"><X size={16} /></button>
               </div>
@@ -165,9 +195,11 @@ function ProductsAdmin() {
                   <div className="flex flex-col relative">
                     <div className="flex items-center justify-between h-4 mb-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Category</label>
-                      <button onClick={() => setIsCustomCat(!isCustomCat)} className="text-[10px] font-bold text-primary hover:underline transition-all">
-                        {isCustomCat ? "Use Existing" : "Create New"}
-                      </button>
+                      {!editProduct && (
+                        <button onClick={() => setIsCustomCat(!isCustomCat)} className="text-[10px] font-bold text-primary hover:underline transition-all">
+                          {isCustomCat ? "Use Existing" : "Create New"}
+                        </button>
+                      )}
                     </div>
                     {isCustomCat ? (
                       <input value={form.new_category_name} onChange={(e) => setForm({ ...form, new_category_name: e.target.value })} placeholder="Category Name" 
@@ -212,14 +244,26 @@ function ProductsAdmin() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Image URL (Optional)</label>
-                  <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      <ImageIcon size={14} />
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="col-span-1">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Image URL (Optional)</label>
+                    <div className="relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        <ImageIcon size={14} />
+                      </div>
+                      <input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." 
+                        className="w-full rounded-xl border border-border/60 bg-card/40 py-3.5 pl-11 pr-4 text-sm outline-none focus:border-primary/50 transition-colors h-[46px]" />
                     </div>
-                    <input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://example.com/image.png" 
-                      className="w-full rounded-xl border border-border/60 bg-card/40 py-3.5 pl-11 pr-4 text-sm outline-none focus:border-primary/50 transition-colors" />
+                  </div>
+                  <div className="col-span-1">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Product Status</label>
+                    <button 
+                      onClick={() => setForm({ ...form, status: !form.status })}
+                      className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-sm transition-all h-[46px] ${form.status ? "border-emerald-500/40 bg-emerald-500/5 text-emerald-400" : "border-red-500/40 bg-red-500/5 text-red-400"}`}
+                    >
+                      <span className="font-bold">{form.status ? "ACTIVE" : "INACTIVE"}</span>
+                      <CheckCircle2 size={16} className={form.status ? "opacity-100" : "opacity-20"} />
+                    </button>
                   </div>
                 </div>
 
@@ -230,7 +274,7 @@ function ProductsAdmin() {
                 </div>
                 
                 <Btn className="w-full justify-center py-6 mt-2 shadow-neon transition-transform active:scale-95" onClick={() => mutation.mutate(form)} disabled={mutation.isPending || !form.name}>
-                  {mutation.isPending ? <Loader2 size={16} className="animate-spin" /> : "Add Product"}
+                  {mutation.isPending ? <Loader2 size={16} className="animate-spin" /> : (editProduct ? "Update Product" : "Add Product")}
                 </Btn>
               </div>
             </motion.div>

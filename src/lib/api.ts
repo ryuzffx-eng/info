@@ -64,6 +64,7 @@ export const api = {
     getReviews: (productId?: number) => apiFetch(`/store/reviews${productId ? `?product_id=${productId}` : ""}`),
     createReview: (data: any) => apiFetch("/store/reviews", { method: "POST", body: JSON.stringify(data) }),
     deleteProduct: (id: number) => apiFetch(`/store/products/${id}`, { method: "DELETE" }),
+    updateProduct: (id: number, data: any) => apiFetch(`/store/products/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   },
   admin: {
     getApplications: () => apiFetch("/admin/applications"),
