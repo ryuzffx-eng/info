@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Edit, Trash2, Sparkles, Loader2, X, PlusCircle, Image as ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Sparkles, Loader2, X, PlusCircle, Image as ImageIcon, Tag } from "lucide-react";
 import { PageHeader, Card, Badge, Btn, ConfirmModal } from "@/components/admin/ui";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -97,9 +97,12 @@ function ProductsAdmin() {
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-semibold tracking-tight">{p.name}</h3>
-                  <p className="text-[10px] uppercase tracking-widest text-primary/80 font-bold mt-1">
-                    {p.category?.name || "General"}
-                  </p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Tag size={10} className="text-primary" />
+                    <p className="text-[10px] uppercase tracking-widest text-primary/80 font-bold">
+                      {p.category?.name || "General"}
+                    </p>
+                  </div>
                 </div>
                 <div className="font-display text-xl font-bold neon-text">${p.price}</div>
               </div>
@@ -135,41 +138,41 @@ function ProductsAdmin() {
             className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-xl">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-strong w-full max-w-md rounded-2xl p-7 shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto scrollbar-thin">
-              <div className="flex items-center justify-between mb-6">
+              className="glass-strong w-full max-w-md rounded-2xl p-7 shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto scrollbar-none">
+              <div className="flex items-center justify-between mb-8">
                 <div>
                   <h3 className="text-xl font-bold tracking-tight">Add New Product</h3>
-                  <p className="text-xs text-muted-foreground">List a new software to the catalog.</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">List a new software to the catalog.</p>
                 </div>
                 <button onClick={() => setOpen(false)} className="rounded-lg p-2 hover:bg-card transition-colors"><X size={16} /></button>
               </div>
               
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Name</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Product Name</label>
                   <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Premium Hub V3" 
-                    className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50 transition-colors" />
+                    className="w-full rounded-xl border border-border/60 bg-card/40 p-3.5 text-sm outline-none focus:border-primary/50 transition-colors" />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Price ($)</label>
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="flex flex-col">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground h-4 mb-2">Price ($)</label>
                     <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) })} 
-                      className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50 transition-colors" />
+                      className="w-full rounded-xl border border-border/60 bg-card/40 p-3.5 text-sm outline-none focus:border-primary/50 transition-colors h-[46px]" />
                   </div>
-                  <div>
-                    <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <div className="flex items-center justify-between h-4 mb-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Category</label>
-                      <button onClick={() => setIsCustomCat(!isCustomCat)} className="text-[10px] font-bold text-primary hover:underline">
-                        {isCustomCat ? "Select existing" : "Create new"}
+                      <button onClick={() => setIsCustomCat(!isCustomCat)} className="text-[10px] font-bold text-primary hover:underline transition-all">
+                        {isCustomCat ? "Use Existing" : "Create New"}
                       </button>
                     </div>
                     {isCustomCat ? (
-                      <input value={form.new_category_name} onChange={(e) => setForm({ ...form, new_category_name: e.target.value })} placeholder="New Name" 
-                        className="mt-2 w-full rounded-xl border border-primary/40 bg-primary/5 p-3 text-sm outline-none focus:border-primary/60 transition-colors" />
+                      <input value={form.new_category_name} onChange={(e) => setForm({ ...form, new_category_name: e.target.value })} placeholder="Category Name" 
+                        className="w-full rounded-xl border border-primary/40 bg-primary/5 p-3.5 text-sm outline-none focus:border-primary/60 transition-colors h-[46px]" />
                     ) : (
                       <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: parseInt(e.target.value) })}
-                        className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50 transition-colors cursor-pointer">
+                        className="w-full rounded-xl border border-border/60 bg-card/40 px-3.5 text-sm outline-none focus:border-primary/50 transition-colors cursor-pointer h-[46px]">
                         {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                     )}
@@ -177,21 +180,23 @@ function ProductsAdmin() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Image URL (Optional)</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Image URL (Optional)</label>
                   <div className="relative">
-                    <ImageIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <ImageIcon size={14} />
+                    </div>
                     <input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://example.com/image.png" 
-                      className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 py-3 pl-9 pr-4 text-sm outline-none focus:border-primary/50 transition-colors" />
+                      className="w-full rounded-xl border border-border/60 bg-card/40 py-3.5 pl-11 pr-4 text-sm outline-none focus:border-primary/50 transition-colors" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Description</label>
-                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Detailed product information..." rows={3}
-                    className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50 resize-none transition-colors" />
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Description</label>
+                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What does this product do?" rows={3}
+                    className="w-full rounded-xl border border-border/60 bg-card/40 p-3.5 text-sm outline-none focus:border-primary/50 resize-none transition-colors" />
                 </div>
                 
-                <Btn className="w-full justify-center py-6 mt-4 shadow-neon" onClick={() => mutation.mutate(form)} disabled={mutation.isPending || !form.name}>
+                <Btn className="w-full justify-center py-6 mt-2 shadow-neon transition-transform active:scale-95" onClick={() => mutation.mutate(form)} disabled={mutation.isPending || !form.name}>
                   {mutation.isPending ? <Loader2 size={16} className="animate-spin" /> : "Add Product"}
                 </Btn>
               </div>
