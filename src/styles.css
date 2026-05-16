@@ -54,26 +54,26 @@
 :root {
   --radius: 0.75rem;
 
-  /* Deep Atmospheric Theme (Based on your image) */
-  --background: #08050e; /* Very dark purple-black */
-  --foreground: #f0f0f5;
+  /* Vibrant Red Palette (H:2, S:100, L:59) */
+  --background: #050101; /* Deepest black-red */
+  --foreground: #fcfcfc;
 
-  --card: rgba(15, 12, 25, 0.4);
-  --card-foreground: #f0f0f5;
+  --card: rgba(18, 5, 5, 0.4);
+  --card-foreground: #fcfcfc;
 
-  --popover: #0f0c19;
-  --popover-foreground: #f0f0f5;
+  --popover: #120505;
+  --popover-foreground: #fcfcfc;
 
-  --primary: #8b5cf6; /* Vibrant Purple */
+  --primary: hsl(2, 100%, 59%); /* Your requested color */
   --primary-foreground: #ffffff;
 
-  --secondary: #1a1625;
-  --secondary-foreground: #f0f0f5;
+  --secondary: #1a0a0a;
+  --secondary-foreground: #fcfcfc;
 
-  --muted: #110f1a;
-  --muted-foreground: #7c768c;
+  --muted: #110505;
+  --muted-foreground: #8a7a7a;
 
-  --accent: #d946ef;
+  --accent: hsl(2, 100%, 65%);
   --accent-foreground: #ffffff;
 
   --destructive: #ef4444;
@@ -84,17 +84,17 @@
   --neon: var(--primary);
 
   --border: rgba(255, 255, 255, 0.05);
-  --input: #110f1a;
+  --input: #110505;
   --ring: var(--primary);
 
-  /* Deep Purple Glows */
-  --primary-glow: rgba(139, 92, 246, 0.12);
-  --secondary-glow: rgba(217, 70, 239, 0.08);
+  /* Deep Red Glows */
+  --primary-glow: hsla(2, 100%, 59%, 0.12);
+  --secondary-glow: hsla(2, 100%, 65%, 0.08);
   
   --gradient-brand: linear-gradient(135deg, var(--primary), var(--accent));
-  --shadow-neon: 0 0 32px rgba(139, 92, 246, 0.2), 0 0 64px rgba(139, 92, 246, 0.1);
-  --shadow-glow: 0 8px 40px -10px rgba(139, 92, 246, 0.3);
-  --shadow-card: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
+  --shadow-neon: 0 0 32px hsla(2, 100%, 59%, 0.2), 0 0 64px hsla(2, 100%, 59%, 0.1);
+  --shadow-glow: 0 8px 40px -10px hsla(2, 100%, 59%, 0.3);
+  --shadow-card: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
 }
 
 @layer base {
@@ -112,11 +112,11 @@
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
-    /* Atmospheric deep purple radial gradient matching your image */
+    /* Clean atmosphere with the new red highlights */
     background-image: 
-      radial-gradient(circle at 50% 20%, var(--primary-glow), transparent 80%),
+      radial-gradient(circle at 50% -10%, var(--primary-glow), transparent 70%),
       radial-gradient(circle at 100% 100%, var(--secondary-glow), transparent 60%),
-      radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.05), transparent 60%);
+      radial-gradient(circle at 0% 100%, hsla(2, 100%, 59%, 0.05), transparent 60%);
     background-attachment: fixed;
     min-height: 100vh;
   }
@@ -135,7 +135,7 @@
     border: 1px solid var(--border);
   }
   .glass-strong {
-    background: rgba(15, 12, 25, 0.7);
+    background: rgba(18, 5, 5, 0.7);
     backdrop-filter: blur(32px) saturate(200%);
     -webkit-backdrop-filter: blur(32px) saturate(200%);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -149,7 +149,6 @@
   .neon-glow {
     box-shadow: var(--shadow-neon);
   }
-  /* Grid background removed as requested ("remove bars on bg") */
   .grid-bg {
     display: none;
   }
