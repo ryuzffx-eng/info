@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Edit, Trash2, Sparkles, Loader2, X, PlusCircle, Image as ImageIcon, Tag } from "lucide-react";
+import { Plus, Edit, Trash2, Sparkles, Loader2, X, PlusCircle, Image as ImageIcon, Tag, ChevronDown } from "lucide-react";
 import { PageHeader, Card, Badge, Btn, ConfirmModal } from "@/components/admin/ui";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -13,6 +13,7 @@ function ProductsAdmin() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [isCustomCat, setIsCustomCat] = useState(false);
+  const [isCatSelectOpen, setIsCatSelectOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [form, setForm] = useState({ 
     name: "", 
@@ -49,6 +50,7 @@ function ProductsAdmin() {
       toast.success("Product added successfully");
       setOpen(false);
       setIsCustomCat(false);
+      setIsCatSelectOpen(false);
       setForm({ name: "", price: 0, description: "", category_id: 1, new_category_name: "", image_url: "" });
     },
     onError: (err: any) => toast.error(err.message)
@@ -160,7 +162,7 @@ function ProductsAdmin() {
                     <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) })} 
                       className="w-full rounded-xl border border-border/60 bg-card/40 p-3.5 text-sm outline-none focus:border-primary/50 transition-colors h-[46px]" />
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col relative">
                     <div className="flex items-center justify-between h-4 mb-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Category</label>
                       <button onClick={() => setIsCustomCat(!isCustomCat)} className="text-[10px] font-bold text-primary hover:underline transition-all">
@@ -171,10 +173,41 @@ function ProductsAdmin() {
                       <input value={form.new_category_name} onChange={(e) => setForm({ ...form, new_category_name: e.target.value })} placeholder="Category Name" 
                         className="w-full rounded-xl border border-primary/40 bg-primary/5 p-3.5 text-sm outline-none focus:border-primary/60 transition-colors h-[46px]" />
                     ) : (
-                      <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: parseInt(e.target.value) })}
-                        className="w-full rounded-xl border border-border/60 bg-card/40 px-3.5 text-sm outline-none focus:border-primary/50 transition-colors cursor-pointer h-[46px]">
-                        {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                      </select>
+                      <>
+                        <button
+                          onClick={() => setIsCatSelectOpen(!isCatSelectOpen)}
+                          className="flex w-full items-center justify-between rounded-xl border border-border/60 bg-card/40 p-3.5 text-sm transition-all focus:border-primary/50 h-[46px] text-left"
+                        >
+                          <span className="truncate">{categories.find(c => c.id === form.category_id)?.name || "Select Category"}</span>
+                          <ChevronDown size={14} className={`transition-transform duration-300 ${isCatSelectOpen ? "rotate-180" : ""}`} />
+                        </button>
+                        <AnimatePresence>
+                          {isCatSelectOpen && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setIsCatSelectOpen(false)} />
+                              <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                className="absolute left-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl border border-border/60 bg-card/90 p-1.5 backdrop-blur-xl shadow-2xl"
+                              >
+                                {categories.map(c => (
+                                  <button
+                                    key={c.id}
+                                    onClick={() => {
+                                      setForm({ ...form, category_id: c.id });
+                                      setIsCatSelectOpen(false);
+                                    }}
+                                    className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm transition-all ${form.category_id === c.id ? "bg-primary/20 text-primary font-bold" : "hover:bg-card text-muted-foreground hover:text-foreground"}`}
+                                  >
+                                    {c.name}
+                                  </button>
+                                ))}
+                              </motion.div>
+                            </>
+                          )}
+                        </AnimatePresence>
+                      </>
                     )}
                   </div>
                 </div>
