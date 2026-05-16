@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import {
   Outlet,
   createRootRouteWithContext,
@@ -10,6 +11,7 @@ import {
 import { Toaster } from "sonner";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import appCss from "../styles.css?url";
+import { LoadingScreen } from "@/components/site/LoadingScreen";
 
 function NotFoundComponent() {
   return (
@@ -74,6 +76,26 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [isInitialLoading, setIsInitialLoading] = useState(() => {
+    // Only show the splash screen once per session
+    if (typeof window !== "undefined") {
+      return !sessionStorage.getItem("has_seen_splash");
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (isInitialLoading) {
+      const timer = setTimeout(() => {
+        setIsInitialLoading(false);
+        sessionStorage.setItem("has_seen_splash", "true");
+      }, 2000); // 2s for a premium feel
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialLoading]);
+
+  if (isInitialLoading) return <LoadingScreen />;
+
   return (
     <ThemeProvider>
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>

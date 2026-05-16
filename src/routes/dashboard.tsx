@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/admin/DashboardShell";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Package, Key, Clock, ShieldCheck } from "lucide-react";
+import { Package, Key, Clock, ShieldCheck, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: async () => {
@@ -13,18 +13,17 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function CustomerDashboard() {
-  const { data: user } = useQuery({
+  const { data: user, isLoading: isUserLoading } = useQuery({
     queryKey: ["current-user"],
     queryFn: () => api.auth.me(),
   });
 
-  const { data: licenses, isLoading } = useQuery({
+  const { data: licenses, isLoading: isLicensesLoading } = useQuery({
     queryKey: ["my-licenses"],
     queryFn: () => api.auth.myLicenses(),
   });
 
-  // If loading, show a clean skeleton
-  if (isLoading) return <DashboardShell variant="user"><div className="animate-pulse space-y-4"><div className="h-32 rounded-2xl bg-card/50" /></div></DashboardShell>;
+  if (isUserLoading || isLicensesLoading) return <DashboardShell variant="user"><div className="flex h-64 items-center justify-center"><Loader2 className="animate-spin text-primary" size={32} /></div></DashboardShell>;
 
   // If no licenses (not a buyer), redirect to store
   if (licenses && licenses.length === 0) {

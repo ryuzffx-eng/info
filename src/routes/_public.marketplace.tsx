@@ -16,15 +16,17 @@ function Marketplace() {
   const [sort, setSort] = useState("Featured");
   const [active, setActive] = useState<any | null>(null);
 
-  const { data: products = [], isLoading } = useQuery({
+  const { data: products = [], isLoading: isProductsLoading } = useQuery({
     queryKey: ["products"],
     queryFn: () => api.marketplace.getProducts(),
   });
 
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [], isLoading: isCatsLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: () => api.marketplace.getCategories(),
   });
+
+  const isLoading = isProductsLoading || isCatsLoading;
 
   const catNames = useMemo(() => ["All", ...categories.map((c: any) => c.name)], [categories]);
 
@@ -35,7 +37,6 @@ function Marketplace() {
     );
     if (sort === "Price ↑") r = [...r].sort((a, b) => a.price - b.price);
     if (sort === "Price ↓") r = [...r].sort((a, b) => b.price - a.price);
-    // Note: API needs to return rating, defaulting to 5 for now
     if (sort === "Rating") r = [...r].sort((a, b) => (b.rating || 5) - (a.rating || 5));
     return r;
   }, [q, cat, sort, products]);
@@ -50,6 +51,8 @@ function Marketplace() {
     ];
     return colors[id % colors.length];
   };
+
+  if (isLoading) return <div className="flex h-64 items-center justify-center"><Loader2 className="animate-spin text-primary" size={32} /></div>;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
@@ -77,12 +80,6 @@ function Marketplace() {
         ))}
       </div>
 
-      {isLoading && (
-        <div className="flex h-64 items-center justify-center">
-          <Loader2 className="animate-spin text-primary" size={32} />
-        </div>
-      )}
-
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {list.map((p, i) => (
           <motion.div key={p.id} layout initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
@@ -109,7 +106,7 @@ function Marketplace() {
             </div>
           </motion.div>
         ))}
-        {!isLoading && list.length === 0 && (
+        {list.length === 0 && (
           <div className="col-span-full py-20 text-center text-muted-foreground">
             No products match your criteria.
           </div>

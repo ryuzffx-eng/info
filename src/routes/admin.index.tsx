@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Users, Key, DollarSign, AppWindow, Activity, TrendingUp, Loader2 } from "lucide-react";
 import { PageHeader, StatCard, Card, Badge } from "@/components/admin/ui";
 import { LineChart, Line, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, CartesianGrid } from "recharts";
@@ -19,14 +19,7 @@ function AdminDashboard() {
 
   console.log("[Dashboard] State:", { isLoading, isError: !!error, error });
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[80vh] flex-col items-center justify-center gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground animate-pulse">Connecting to API...</p>
-      </div>
-    );
-  }
+  if (isLoading) return <div className="flex h-[80vh] items-center justify-center"><Loader2 className="animate-spin text-primary" size={32} /></div>;
 
   if (error) {
     const isAuthError = (error as Error).message.includes("401") || (error as Error).message.includes("credentials");
