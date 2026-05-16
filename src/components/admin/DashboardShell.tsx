@@ -10,43 +10,45 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 const userNav = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Overview" },
-  { to: "/dashboard/licenses", icon: Key, label: "My Licenses" },
-  { to: "/dashboard/orders", icon: ScrollText, label: "Orders" },
-  { to: "/dashboard/support", icon: MessageCircle, label: "Support" },
+  { to: "/dashboard", icon: LayoutDashboard, label: "Overview", description: "Account overview & stats" },
+  { to: "/dashboard/licenses", icon: Key, label: "My Licenses", description: "Manage your active software" },
+  { to: "/dashboard/orders", icon: ScrollText, label: "Orders", description: "View your purchase history" },
+  { to: "/dashboard/support", icon: MessageCircle, label: "Support", description: "Get help with your products" },
 ];
 
 const resellerNav = [
-  { to: "/reseller", icon: LayoutDashboard, label: "Overview" },
-  { to: "/reseller/licenses", icon: Key, label: "Licenses" },
-  { to: "/reseller/users", icon: Users, label: "Users" },
-  { to: "/reseller/logs", icon: ScrollText, label: "Logs" },
+  { to: "/reseller", icon: LayoutDashboard, label: "Overview", description: "Reseller dashboard" },
+  { to: "/reseller/licenses", icon: Key, label: "Licenses", description: "Manage customer keys" },
+  { to: "/reseller/users", icon: Users, label: "Users", description: "Customer account list" },
+  { to: "/reseller/logs", icon: ScrollText, label: "Logs", description: "Recent reseller activity" },
 ];
 
 const adminDashboardNav = [
-  { to: "/admin", icon: LayoutDashboard, label: "Overview" },
-  { to: "/admin/analytics", icon: BarChart3, label: "Analytics" },
-  { to: "/admin/logs", icon: ScrollText, label: "Security Logs" },
+  { to: "/admin", icon: LayoutDashboard, label: "Overview", description: "Global store analytics" },
+  { to: "/admin/analytics", icon: BarChart3, label: "Analytics", description: "Deep dive sales data" },
+  { to: "/admin/logs", icon: ScrollText, label: "Security Logs", description: "Monitor system events" },
 ];
 
 const adminManagement = [
-  { to: "/admin/users", icon: Users, label: "Users" },
-  { to: "/admin/resellers", icon: UsersRound, label: "Resellers" },
-  { to: "/admin/licenses", icon: Key, label: "Licenses" },
+  { to: "/admin/users", icon: Users, label: "Users", description: "User management system" },
+  { to: "/admin/resellers", icon: UsersRound, label: "Resellers", description: "Manage reseller network" },
+  { to: "/admin/licenses", icon: Key, label: "Licenses", description: "Manage all license keys" },
 ];
 
 const adminCatalog = [
-  { to: "/admin/applications", icon: AppWindow, label: "Applications" },
-  { to: "/admin/products", icon: Package, label: "Products" },
-  { to: "/admin/files", icon: FolderOpen, label: "Files" },
-  { to: "/admin/store-pages", icon: Store, label: "Store Pages" },
+  { to: "/admin/applications", icon: AppWindow, label: "Applications", description: "Manage your software" },
+  { to: "/admin/products", icon: Package, label: "Products", description: "Store product listings" },
+  { to: "/admin/files", icon: FolderOpen, label: "Files", description: "Storage and downloads" },
+  { to: "/admin/store-pages", icon: Store, label: "Store Pages", description: "Custom storefront pages" },
 ];
 
 const adminSystem = [
-  { to: "/admin/settings", icon: Settings, label: "Global Settings" },
-  { to: "/docs", icon: ScrollText, label: "Documentation" },
-  { to: "/support", icon: MessageCircle, label: "Support Portal" },
+  { to: "/admin/settings", icon: Settings, label: "Global Settings", description: "Core system configuration" },
+  { to: "/docs", icon: ScrollText, label: "Documentation", description: "Developer & API guides" },
+  { to: "/support", icon: MessageCircle, label: "Support Portal", description: "Admin support tickets" },
 ];
+
+import { DashboardBottomNav } from "./DashboardBottomNav";
 
 export function DashboardShell({ children, variant = "admin" }: { children: React.ReactNode; variant?: "admin" | "reseller" | "user" }) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -152,7 +154,7 @@ export function DashboardShell({ children, variant = "admin" }: { children: Reac
           </div>
         </nav>
 
-        <main className="relative flex-1 mx-auto w-full max-w-[1400px] p-6 lg:p-10">
+        <main className="relative flex-1 mx-auto w-full max-w-[1400px] p-6 lg:p-10 pb-24 md:pb-10">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -161,6 +163,8 @@ export function DashboardShell({ children, variant = "admin" }: { children: Reac
             {children}
           </motion.div>
         </main>
+        
+        <DashboardBottomNav variant={variant} />
       </div>
     </div>
   );
@@ -181,21 +185,28 @@ function NavTab({ label, items, active, onHover, onLeave }: any) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.98 }}
             transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-            className="absolute left-0 top-full pt-2"
+            className="absolute left-0 top-[calc(100%+4px)] pt-3"
           >
-            <div className="w-[240px] overflow-hidden rounded-xl border border-white/[0.08] bg-black/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-3xl">
+            <div className="w-[280px] overflow-hidden rounded-xl border border-white/[0.08] bg-black/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-3xl">
               <div className="grid gap-0.5">
                 {items.map((item: any) => (
                   <Link
                     key={item.to}
                     to={item.to}
-                    className="group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all hover:bg-white/[0.04]"
+                    className="group flex items-start gap-3 rounded-lg px-3 py-3 transition-all hover:bg-white/[0.04]"
                   >
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/5 bg-zinc-900/80 text-zinc-500 transition-all group-hover:border-primary/30 group-hover:bg-primary/10 group-hover:text-primary">
-                      <item.icon size={14} />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/5 bg-zinc-900/80 text-zinc-500 transition-all group-hover:border-primary/30 group-hover:bg-primary/10 group-hover:text-primary mt-0.5">
+                      <item.icon size={15} />
                     </div>
-                    <div className="text-[13px] font-semibold text-zinc-300 transition-colors group-hover:text-white">
-                      {item.label}
+                    <div className="flex flex-col">
+                      <div className="text-[13px] font-semibold text-zinc-300 transition-colors group-hover:text-white">
+                        {item.label}
+                      </div>
+                      {item.description && (
+                        <div className="text-[11px] text-zinc-500 line-clamp-1 mt-0.5">
+                          {item.description}
+                        </div>
+                      )}
                     </div>
                   </Link>
                 ))}

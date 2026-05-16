@@ -3,7 +3,7 @@ import { Upload, Copy, Trash2, FileText, FileImage, FileArchive, Loader2, X, Upl
 import { PageHeader, Card, Btn, ConfirmModal } from "@/components/admin/ui";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, API_BASE_URL } from "@/lib/api";
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -90,21 +90,58 @@ function Files() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {files?.map((f: any) => {
           const Icon = getIcon(f.mime_type);
+          const baseUrl = API_BASE_URL.replace("/api/v1", "");
+          const downloadUrl = `${baseUrl}/uploads/${f.filename}`;
+
           return (
-            <Card key={f.id}>
-              <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20"><Icon size={20} /></div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium">{f.filename}</div>
-                  <div className="text-xs text-muted-foreground">{formatSize(f.file_size)}</div>
+            <Card key={f.id} className="group hover:border-primary/30 transition-all duration-300">
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/5 text-primary border border-primary/10 group-hover:bg-primary/10 group-hover:scale-110 transition-all duration-500">
+                  <Icon size={24} />
+                </div>
+                <div className="min-w-0 flex-1 py-1">
+                  <div className="truncate font-bold tracking-tight text-foreground/90">{f.filename}</div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">{formatSize(f.file_size)}</span>
+                    <span className="h-1 w-1 rounded-full bg-border" />
+                    <span className="text-[10px] font-bold text-primary/60 uppercase tracking-tighter">{f.mime_type?.split('/')[1] || "file"}</span>
+                  </div>
                 </div>
               </div>
-              <div className="mt-4 flex items-center gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2 font-mono text-[11px]">
-                <span className="flex-1 truncate text-muted-foreground">{f.file_path}</span>
+
+              <div className="mt-5 space-y-2">
+                <div className="flex items-center gap-2 rounded-xl border border-white/5 bg-black/20 p-2 px-3 h-10">
+                   <span className="flex-1 truncate font-mono text-[10px] text-muted-foreground/60 select-all cursor-text">{downloadUrl}</span>
+                </div>
               </div>
-              <div className="mt-3 flex gap-2">
-                <CopyBtn value={f.file_id} label="ID" />
-                <Btn variant="outline" onClick={() => {
+
+              <div className="mt-4 grid grid-cols-4 gap-2">
+                <Btn variant="primary" className="justify-center h-10 px-0" onClick={() => window.open(downloadUrl, '_blank')} title="Download File">
+                  <Upload size={14} className="rotate-180" />
+                </Btn>
+                <Btn variant="outline" className="justify-center h-10 px-0" onClick={() => {
+                   const copyToClipboard = (text: string) => {
+                     if (navigator.clipboard && window.isSecureContext) {
+                       navigator.clipboard.writeText(text).then(() => toast.success("Link copied"));
+                     } else {
+                       const textArea = document.createElement("textarea");
+                       textArea.value = text;
+                       document.body.appendChild(textArea);
+                       textArea.select();
+                       try {
+                         document.execCommand('copy');
+                         toast.success("Link copied");
+                       } catch (err) {
+                         toast.error("Failed to copy link");
+                       }
+                       document.body.removeChild(textArea);
+                     }
+                   };
+                   copyToClipboard(downloadUrl);
+                }} title="Copy Link">
+                  <Copy size={14} />
+                </Btn>
+                <Btn variant="outline" className="justify-center h-10 px-0" onClick={() => {
                   const input = document.createElement("input");
                   input.type = "file";
                   input.onchange = (e) => {
@@ -112,10 +149,12 @@ function Files() {
                     if (file) replaceMutation.mutate({ id: f.id, file });
                   };
                   input.click();
-                }} disabled={replaceMutation.isPending} title="Replace File">
-                  {replaceMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+                }} disabled={replaceMutation.isPending} title="Update File">
+                  {replaceMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
                 </Btn>
-                <Btn variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => setDeleteId(f.id)} disabled={deleteMutation.isPending}><Trash2 size={12} /></Btn>
+                <Btn variant="ghost" className="justify-center h-10 px-0 text-red-500/70 hover:bg-red-500/10 hover:text-red-500" onClick={() => setDeleteId(f.id)} disabled={deleteMutation.isPending}>
+                  <Trash2 size={14} />
+                </Btn>
               </div>
             </Card>
           );
@@ -197,58 +236,24 @@ function FileUploadModal({ isOpen, onClose, onUpload, loading }: { isOpen: boole
   );
 }
 
-function CopyBtn({ value, label }: { value: string; label: string }) {
+function CopyBtn({ value, label, minimal }: { value: string; label: string; minimal?: boolean }) {
   const [copied, setCopied] = useState(false);
 
   const copy = () => {
-    console.log(`[CopyBtn] Copying: ${value}`);
-    const fallbackCopy = (text: string) => {
-      console.log("[CopyBtn] Attempting fallbackCopy");
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      
-      // Ensure it's not visible but part of the DOM
-      textArea.style.position = "fixed";
-      textArea.style.left = "-9999px";
-      textArea.style.top = "0";
-      
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      
-      try {
-        const successful = document.execCommand('copy');
-        console.log("[CopyBtn] execCommand success:", successful);
-        if (successful) {
-          setCopied(true);
-          toast.success(`${label} copied`);
-          setTimeout(() => setCopied(false), 2000);
-        } else {
-          toast.error("Failed to copy (unsuccessful)");
-        }
-      } catch (err) {
-        console.error("[CopyBtn] execCommand error:", err);
-        toast.error("Failed to copy");
-      }
-      document.body.removeChild(textArea);
-    };
-
-    if (navigator.clipboard && window.isSecureContext) {
-      console.log("[CopyBtn] Using navigator.clipboard");
-      navigator.clipboard.writeText(String(value)).then(() => {
-        console.log("[CopyBtn] navigator.clipboard success");
-        setCopied(true);
-        toast.success(`${label} copied`);
-        setTimeout(() => setCopied(false), 2000);
-      }).catch((err) => {
-        console.error("[CopyBtn] navigator.clipboard failed:", err);
-        fallbackCopy(String(value));
-      });
-    } else {
-      console.log("[CopyBtn] Using fallbackCopy (not secure context or no clipboard API)");
-      fallbackCopy(String(value));
-    }
+    navigator.clipboard.writeText(String(value)).then(() => {
+      setCopied(true);
+      toast.success(`${label} copied`);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
+
+  if (minimal) {
+    return (
+      <button onClick={copy} className="p-2 rounded-lg hover:bg-white/5 text-muted-foreground hover:text-primary transition-all">
+        {copied ? <Check size={14} className="text-primary" /> : <Copy size={14} />}
+      </button>
+    );
+  }
 
   return (
     <Btn variant="outline" className="flex-1 justify-center" onClick={copy}>

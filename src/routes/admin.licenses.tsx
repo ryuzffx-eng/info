@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Pause, Trash2, Copy, Loader2, RefreshCcw, X, ChevronDown, Info, RefreshCw, Check } from "lucide-react";
+import { Plus, Pause, Trash2, Copy, Loader2, RefreshCcw, X, ChevronDown, Info, RefreshCw, Check, Calendar, Clock, Shield, Hash, Zap, Activity } from "lucide-react";
 import { PageHeader, Card, Badge, Btn, ConfirmModal } from "@/components/admin/ui";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -35,7 +35,7 @@ function Licenses() {
       toast.error(`Failed to generate: ${err.message}`);
     }
   });
-  
+
   const resetHwidMutation = useMutation({
     mutationFn: (id: number) => api.admin.resetLicenseHwid(id),
     onSuccess: () => {
@@ -79,8 +79,8 @@ function Licenses() {
 
   return (
     <div>
-      <PageHeader 
-        title="Licenses" 
+      <PageHeader
+        title="Licenses"
         subtitle="Generate and manage license keys."
         action={
           <div className="flex gap-2">
@@ -89,20 +89,21 @@ function Licenses() {
               <Plus size={14} /> Generate License
             </Btn>
           </div>
-        } 
+        }
       />
-      <Card className="!p-0 overflow-hidden border-border/40">
+      {/* Desktop Table */}
+      <Card className="hidden md:block !p-0 overflow-hidden border-border/40">
         <div className="scrollbar-thin overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-card/30 text-left text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
-              <tr className="border-b border-border/40">
-                <th className="py-5 px-6 w-16">#</th>
-                <th className="px-6">License key</th>
-                <th className="px-6">Application</th>
-                <th className="px-6">Status</th>
-                <th className="px-6">Expiry</th>
-                <th className="px-6">Created</th>
-                <th className="px-6 text-right">Actions</th>
+            <thead className="bg-card/20 text-left text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 border-b border-white/5">
+              <tr>
+                <th className="py-5 px-6 w-16 font-display">#</th>
+                <th className="px-6 font-display"><div className="flex items-center gap-2"><Hash size={12} /> License key</div></th>
+                <th className="px-6 font-display"><div className="flex items-center gap-2"><Zap size={12} /> Application</div></th>
+                <th className="px-6 font-display"><div className="flex items-center gap-2"><Activity size={12} /> Status</div></th>
+                <th className="px-6 font-display"><div className="flex items-center gap-2"><Clock size={12} /> Expiry</div></th>
+                <th className="px-6 font-display"><div className="flex items-center gap-2"><Calendar size={12} /> Created</div></th>
+                <th className="px-6 text-right font-display">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
@@ -113,29 +114,30 @@ function Licenses() {
                   </td>
                   <td className="px-6">
                     <div className="flex items-center gap-2 group/key">
-                        <div className="bg-background/60 border border-border/40 rounded-lg px-4 py-2.5 font-mono text-xs tracking-wider text-foreground/90 shadow-inner group-hover/key:border-primary/30 transition-all">
-                          {l.key}
-                        </div>
-                        <CopyIconBtn value={l.key} />
+                      <div className="bg-background/60 border border-border/40 rounded-lg px-4 py-2.5 font-mono text-xs tracking-wider text-foreground/90 shadow-inner group-hover/key:border-primary/30 transition-all">
+                        {l.key}
                       </div>
+                      <CopyIconBtn value={l.key} />
+                    </div>
                   </td>
                   <td className="px-6">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-xs ring-1 ring-primary/20">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold text-sm border border-primary/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                         {(l.app_name || "?").charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-semibold text-foreground/90">{l.app_name || "Unknown"}</div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5">Plan: Root</div>
+                        <div className="font-bold text-foreground/90 tracking-tight">{l.app_name || "Unknown"}</div>
+                        <div className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-0.5">Plan: {l.plan_name || "Standard"}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6">
-                    <div className={`inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest ring-1 ${
-                      l.status === "active" ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : 
-                      l.status === "paused" ? "bg-yellow-500/10 text-yellow-400 ring-yellow-500/20" : 
-                      "bg-muted/20 text-muted-foreground ring-border/40"
-                    }`}>
+                    <div className={`inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${
+                        l.status === "active" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]" :
+                        l.status === "used" ? "bg-primary/10 text-primary border-primary/20" :
+                        l.status === "paused" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" :
+                        "bg-white/5 text-muted-foreground border-white/5"
+                      }`}>
                       {l.status}
                     </div>
                   </td>
@@ -146,7 +148,9 @@ function Licenses() {
                     </div>
                   </td>
                   <td className="px-6">
-                    <div className="text-muted-foreground/80">{new Date(l.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+                    <div className="text-muted-foreground/80">
+                      {l.created_at ? new Date(l.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "N/A"}
+                    </div>
                   </td>
                   <td className="px-6">
                     <div className="flex justify-end items-center gap-4">
@@ -172,24 +176,89 @@ function Licenses() {
         </div>
       </Card>
 
-      <GenerateLicenseModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      {/* Mobile Grid Layout */}
+      <div className="md:hidden space-y-4">
+        {licenses?.map((l: any, idx: number) => (
+          <div key={l.key} className="bg-secondary/40 backdrop-blur-xl rounded-xl border border-white/[0.03] p-6 space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-900/80 text-primary font-bold text-lg border border-white/5">
+                  {(l.app_name || "?").charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-white tracking-tight">{l.app_name || "Unknown"}</div>
+                  <div className="text-[10px] font-bold text-primary uppercase tracking-widest mt-0.5">{l.plan_name || "Standard"} Plan</div>
+                </div>
+              </div>
+              <div className={`inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                l.status === "active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : 
+                l.status === "paused" ? "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20" : 
+                "bg-zinc-900 text-zinc-500 border border-white/5"
+              }`}>
+                {l.status}
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">License Key</div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs font-medium text-white bg-black/60 px-4 py-2.5 rounded-lg border border-white/5 shadow-inner">{l.key}</span>
+                  <CopyIconBtn value={l.key} />
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Expiration</div>
+                <div className="text-right">
+                   <div className="text-sm font-bold text-white">{l.expiry ? new Date(l.expiry).toLocaleDateString() : "Lifetime"}</div>
+                   <div className="text-[10px] font-medium text-zinc-500 mt-1 uppercase tracking-tighter">{formatDaysLeft(l.expiry) || "No limit"}</div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Created</div>
+                <div className="text-right">
+                   <div className="text-sm font-bold text-white">{l.created_at ? new Date(l.created_at).toLocaleDateString() : "N/A"}</div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Actions</div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setInfoLicense(l)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900/60 text-zinc-400 border border-white/5 active:bg-white/10 transition-all"><Info size={18} /></button>
+                  <button onClick={() => resetHwidMutation.mutate(l.id)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900/60 text-emerald-500/80 border border-white/5 active:bg-emerald-500/20 transition-all"><RefreshCw size={18} /></button>
+                  <button onClick={() => setDeleteId(l.id)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900/60 text-red-500/80 border border-white/5 active:bg-red-500/20 transition-all"><Trash2 size={18} /></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+        {licenses?.length === 0 && (
+           <div className="bg-secondary/20 rounded-xl p-12 text-center border border-white/5">
+              <div className="text-zinc-500 font-medium italic">No licenses found</div>
+           </div>
+        )}
+      </div>
+
+      <GenerateLicenseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onGenerate={(data) => generateMutation.mutate(data)}
         loading={generateMutation.isPending}
         apps={apps || []}
       />
 
-      <LicenseInfoModal 
-        license={infoLicense} 
-        onClose={() => setInfoLicense(null)} 
+      <LicenseInfoModal
+        license={infoLicense}
+        onClose={() => setInfoLicense(null)}
         onResetHwid={() => resetHwidMutation.mutate(infoLicense.id)}
         resetLoading={resetHwidMutation.isPending}
       />
 
-      <ConfirmModal 
-        isOpen={deleteId !== null} 
-        onClose={() => setDeleteId(null)} 
+      <ConfirmModal
+        isOpen={deleteId !== null}
+        onClose={() => setDeleteId(null)}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
         loading={deleteMutation.isPending}
         title="Delete License"
@@ -308,30 +377,62 @@ function LicenseInfoModal({ license, onClose, onResetHwid, resetLoading }: { lic
   return (
     <AnimatePresence>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 p-4 backdrop-blur-md">
-        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9 }}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-md">
+        <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
           onClick={(e) => e.stopPropagation()}
-          className="glass-strong w-full max-w-lg rounded-3xl p-8 shadow-2xl">
+          className="glass-strong w-full max-w-lg rounded-2xl p-7 shadow-2xl relative overflow-hidden bg-card/60">
+          
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold">License Details</h3>
-            <button onClick={onClose} className="rounded-lg p-2 hover:bg-card"><X size={16} /></button>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                <Shield size={20} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold font-display tracking-tight">License Details</h3>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Security Management</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="rounded-lg p-2 hover:bg-card/80 text-muted-foreground transition-all">
+              <X size={18} />
+            </button>
           </div>
 
-          <div className="space-y-5">
-            <InfoItem label="LICENSE KEY" value={license.key} mono copyable />
-            <div className="grid grid-cols-2 gap-4">
-              <InfoItem label="STATUS" value={license.status?.toUpperCase() || "N/A"} />
-              <InfoItem label="APP NAME" value={license.app_name || "N/A"} />
-            </div>
-            <InfoItem label="HWID" value={license.hwid || "Not bound"} mono />
+          <div className="space-y-4">
+            <InfoItem label="LICENSE KEY" value={license.key} icon={<Hash size={14} />} mono copyable />
             
+            <div className="grid grid-cols-2 gap-4">
+              <InfoItem label="STATUS" value={license.status} icon={<Activity size={14} />} 
+                className={license.status === 'active' ? 'text-emerald-400' : license.status === 'paused' ? 'text-yellow-400' : 'text-red-400'} />
+              <InfoItem label="PLAN TYPE" value={license.plan_name || "Standard"} icon={<Zap size={14} />} />
+            </div>
+
+            <InfoItem label="HARDWARE ID (HWID)" value={license.hwid || "Not bound yet"} icon={<Shield size={14} />} mono copyable={!!license.hwid} />
+
+            <div className="grid grid-cols-2 gap-4">
+              <InfoItem label="CREATED ON" value={license.created_at ? new Date(license.created_at).toLocaleDateString() : "N/A"} icon={<Calendar size={14} />} />
+              <InfoItem label="DURATION" value={`${license.duration_days} Days`} icon={<Clock size={14} />} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <InfoItem label="LAST USED" value={license.last_used ? new Date(license.last_used).toLocaleDateString() : "Never"} icon={<Activity size={14} />} />
+              <InfoItem label="EXPIRY DATE" value={license.expiry ? new Date(license.expiry).toLocaleDateString() : "N/A"} icon={<Calendar size={14} />} />
+            </div>
+
             <div className="pt-4 flex gap-3">
-              <Btn variant="outline" className="flex-1" onClick={onResetHwid} disabled={resetLoading || !license.hwid}>
-                {resetLoading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Reset HWID
-              </Btn>
-              <Btn variant="ghost" className="flex-1 text-destructive hover:bg-destructive/10" onClick={onClose}>
-                Close
-              </Btn>
+              <button 
+                onClick={onResetHwid} 
+                disabled={resetLoading || !license.hwid}
+                className="flex-1 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center gap-2 text-xs font-bold hover:bg-primary/20 active:scale-[0.98] transition-all disabled:opacity-50 group text-primary"
+              >
+                {resetLoading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-500" />}
+                Reset Hardware Lock
+              </button>
+              <button 
+                onClick={onClose}
+                className="px-6 h-12 rounded-xl bg-card border border-border/60 text-muted-foreground text-xs font-bold hover:bg-card/80 transition-all"
+              >
+                Done
+              </button>
             </div>
           </div>
         </motion.div>
@@ -340,12 +441,15 @@ function LicenseInfoModal({ license, onClose, onResetHwid, resetLoading }: { lic
   );
 }
 
-function InfoItem({ label, value, mono, copyable }: { label: string; value: string; mono?: boolean; copyable?: boolean }) {
+function InfoItem({ label, value, mono, copyable, icon, className }: { label: string; value: string; mono?: boolean; copyable?: boolean; icon?: React.ReactNode; className?: string }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-card/40 p-4">
-      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</div>
-      <div className="flex items-center justify-between gap-2">
-        <div className={`text-sm font-semibold truncate ${mono ? "font-mono" : ""}`}>{value}</div>
+    <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.04]">
+      <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60 mb-2">
+        {icon && <span className="opacity-50">{icon}</span>}
+        {label}
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <div className={`text-xs font-bold truncate tracking-tight ${mono ? "font-mono" : ""} ${className || "text-foreground/90"}`}>{value}</div>
         {copyable && <CopyIconBtn value={value} />}
       </div>
     </div>

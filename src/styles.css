@@ -54,26 +54,28 @@
 :root {
   --radius: 0.75rem;
 
-  /* Vibrant Red Palette (H:2, S:100, L:59) */
-  --background: #050101; /* Deepest black-red */
-  --foreground: #fcfcfc;
+  /* Deep Atmospheric Theme (Based on your image) */
+  --background: #08050e;
+  /* Very dark purple-black */
+  --foreground: #f0f0f5;
 
-  --card: rgba(18, 5, 5, 0.4);
-  --card-foreground: #fcfcfc;
+  --card: rgba(10, 10, 12, 0.4);
+  --card-foreground: #f0f0f5;
 
-  --popover: #120505;
-  --popover-foreground: #fcfcfc;
+  --popover: #0a0a0c;
+  --popover-foreground: #f0f0f5;
 
-  --primary: hsl(2, 100%, 59%); /* Your requested color */
+  --primary: #10b981;
+  /* Vibrant Green (Emerald 500) */
   --primary-foreground: #ffffff;
 
-  --secondary: #1a0a0a;
-  --secondary-foreground: #fcfcfc;
+  --secondary: #0a0a0c;
+  --secondary-foreground: #f0f0f5;
 
-  --muted: #110505;
-  --muted-foreground: #8a7a7a;
+  --muted: #0d0d0f;
+  --muted-foreground: #71717a;
 
-  --accent: hsl(2, 100%, 65%);
+  --accent: #059669;
   --accent-foreground: #ffffff;
 
   --destructive: #ef4444;
@@ -84,17 +86,17 @@
   --neon: var(--primary);
 
   --border: rgba(255, 255, 255, 0.05);
-  --input: #110505;
+  --input: #0d0d0f;
   --ring: var(--primary);
 
-  /* Deep Red Glows */
-  --primary-glow: hsla(2, 100%, 59%, 0.12);
-  --secondary-glow: hsla(2, 100%, 65%, 0.08);
-  
+  /* Deep Green Glows */
+  --primary-glow: rgba(16, 185, 129, 0.12);
+  --secondary-glow: rgba(16, 185, 129, 0.08);
+
   --gradient-brand: linear-gradient(135deg, var(--primary), var(--accent));
-  --shadow-neon: 0 0 32px hsla(2, 100%, 59%, 0.2), 0 0 64px hsla(2, 100%, 59%, 0.1);
-  --shadow-glow: 0 8px 40px -10px hsla(2, 100%, 59%, 0.3);
-  --shadow-card: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+  --shadow-neon: 0 0 32px rgba(16, 185, 129, 0.2), 0 0 64px rgba(16, 185, 129, 0.1);
+  --shadow-glow: 0 8px 40px -10px rgba(16, 185, 129, 0.3);
+  --shadow-card: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
 }
 
 @layer base {
@@ -112,16 +114,19 @@
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
-    /* Clean atmosphere with the new red highlights */
-    background-image: 
-      radial-gradient(circle at 50% -10%, var(--primary-glow), transparent 70%),
+    /* Atmospheric deep purple radial gradient matching your image */
+    background-image:
+      radial-gradient(circle at 50% 20%, var(--primary-glow), transparent 80%),
       radial-gradient(circle at 100% 100%, var(--secondary-glow), transparent 60%),
-      radial-gradient(circle at 0% 100%, hsla(2, 100%, 59%, 0.05), transparent 60%);
+      radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.05), transparent 60%);
     background-attachment: fixed;
     min-height: 100vh;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
@@ -134,30 +139,45 @@
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--border);
   }
+
   .glass-strong {
-    background: rgba(18, 5, 5, 0.7);
+    background: rgba(10, 10, 12, 0.7);
     backdrop-filter: blur(32px) saturate(200%);
     -webkit-backdrop-filter: blur(32px) saturate(200%);
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
+
   .neon-text {
     background: var(--gradient-brand);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
+
   .neon-glow {
     box-shadow: var(--shadow-neon);
   }
+
+  /* Grid background removed as requested ("remove bars on bg") */
   .grid-bg {
     display: none;
   }
+
   .shadow-neon {
     box-shadow: 0 0 20px var(--primary-glow);
   }
-  .scrollbar-none::-webkit-scrollbar { display: none; }
-  .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.05); border-radius: 3px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
   }
 }

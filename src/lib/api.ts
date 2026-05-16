@@ -1,5 +1,12 @@
 export const isServer = typeof window === "undefined";
-export const API_BASE_URL = import.meta.env.VITE_API_URL || "https://spacex.emerite.store/api/v1";
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (typeof window !== "undefined" && 
+    (window.location.hostname === "localhost" || 
+     window.location.hostname.startsWith("192.168.") || 
+     window.location.hostname.includes("127.0.0.1") ||
+     window.location.hostname.endsWith(".nip.io"))
+    ? `http://${window.location.hostname}:3005/api/v1` 
+    : "https://spacex.emerite.store/api/v1");
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const token = !isServer ? localStorage.getItem("access_token") : null;
@@ -14,6 +21,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   }
 
   const url = `${API_BASE_URL}${endpoint}`;
+  console.log(`[apiFetch] Calling: ${url}`);
   const response = await fetch(url, {
     ...options,
     headers,

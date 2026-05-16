@@ -31,8 +31,8 @@ function Marketplace() {
   const catNames = useMemo(() => ["All", ...categories.map((c: any) => c.name)], [categories]);
 
   const list = useMemo(() => {
-    let r = products.filter((p: any) => 
-      (cat === "All" || p.category?.name === cat) && 
+    let r = products.filter((p: any) =>
+      (cat === "All" || p.category?.name === cat) &&
       p.name.toLowerCase().includes(q.toLowerCase())
     );
     if (sort === "Price ↑") r = [...r].sort((a, b) => a.price - b.price);
@@ -85,7 +85,7 @@ function Marketplace() {
           <motion.div key={p.id} layout initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
             onClick={() => p.status && setActive(p)}
             className={`group relative overflow-hidden rounded-2xl border transition-all ${p.status ? "cursor-pointer border-border/60 bg-card/40 backdrop-blur-xl hover:-translate-y-1 hover:border-primary/40 hover:shadow-[var(--shadow-neon)]" : "opacity-60 grayscale-[0.5] border-border/30 bg-card/20 cursor-not-allowed"}`}>
-            
+
             {!p.status && (
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/40 backdrop-blur-[1px]">
                 <div className="bg-red-500/10 border border-red-500/20 rounded-full p-3 text-red-500 mb-2">
@@ -97,13 +97,13 @@ function Marketplace() {
 
             <div className={`relative h-44 bg-gradient-to-br ${getProductColor(p.id)} border-b border-white/5 flex items-center justify-center overflow-hidden`}>
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,oklch(1_0_0_/_0.15),transparent_70%)]" />
-              
+
               {p.image_url ? (
                 <img src={p.image_url} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
               ) : (
                 <Sparkles size={56} className="text-primary/40 transition-transform duration-500 group-hover:scale-110" />
               )}
-              
+
               <span className="absolute right-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-bold text-white/90 backdrop-blur-md border border-white/10 uppercase tracking-widest">{p.category?.name || "General"}</span>
             </div>
             <div className="p-5">
@@ -120,7 +120,7 @@ function Marketplace() {
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{p.status ? "Online" : "Offline"}</div>
                   </div>
                 </div>
-                <button 
+                <button
                   disabled={!p.status}
                   className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${p.status ? "bg-primary text-primary-foreground shadow-[var(--shadow-glow)] hover:scale-105 active:scale-95" : "bg-muted/20 text-muted-foreground cursor-not-allowed"}`}
                 >
@@ -146,7 +146,7 @@ function Marketplace() {
               onClick={(e) => e.stopPropagation()}
               className="glass-strong relative w-full max-w-lg overflow-hidden rounded-3xl border border-white/10 shadow-2xl">
               <button className="absolute right-4 top-4 z-10 rounded-xl bg-black/40 p-2 text-white/80 hover:bg-black/60 backdrop-blur-md transition-colors" onClick={() => setActive(null)}><X size={18} /></button>
-              
+
               <div className={`h-56 bg-gradient-to-br ${getProductColor(active.id)} flex items-center justify-center overflow-hidden border-b border-white/5`}>
                 {active.image_url ? (
                   <img src={active.image_url} alt={active.name} className="h-full w-full object-cover" />
@@ -154,14 +154,14 @@ function Marketplace() {
                   <Sparkles size={80} className="text-primary/50" />
                 )}
               </div>
-              
+
               <div className="p-8">
                 <div className="flex items-center gap-2 mb-1">
                   <Tag size={12} className="text-primary" />
                   <span className="text-[10px] uppercase tracking-[0.2em] font-black text-primary/80">{active.category?.name}</span>
                 </div>
                 <h3 className="text-3xl font-bold tracking-tight">{active.name}</h3>
-                
+
                 <div className="mt-4 flex items-center gap-4 text-xs">
                   <div className="flex items-center gap-1.5 bg-white/5 rounded-full px-3 py-1 border border-white/5">
                     <div className={`h-1.5 w-1.5 rounded-full ${active.status ? "bg-emerald-500" : "bg-red-500"}`} />
@@ -174,7 +174,7 @@ function Marketplace() {
                 </div>
 
                 <div className="mt-6 text-sm text-muted-foreground leading-relaxed bg-white/5 rounded-2xl p-4 border border-white/5">{active.description}</div>
-                
+
                 <div className="mt-8 flex items-center justify-between">
                   <div>
                     <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1">Starting at</div>
