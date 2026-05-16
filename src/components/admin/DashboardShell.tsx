@@ -61,15 +61,15 @@ export function DashboardShell({ children, variant = "admin" }: { children: Reac
 
   return (
     <div className="relative min-h-screen bg-background selection:bg-primary/30 selection:text-primary-foreground text-foreground font-sans overflow-hidden">
-      {/* Background Grid & Glows (Synced with global styles variables) */}
+      {/* Deep Atmospheric Background Glows (No bars/grid) */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 grid-bg opacity-[0.2] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,var(--primary-glow),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,var(--primary-glow),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,var(--secondary-glow),transparent_50%)]" />
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* Top Navigation Bar */}
-        <nav className="sticky top-0 z-50 w-full border-b border-white/[0.05] bg-black/60 backdrop-blur-2xl">
+        <nav className="sticky top-0 z-50 w-full border-b border-white/[0.03] bg-black/40 backdrop-blur-3xl">
           <div className="mx-auto flex h-16 max-w-[1400px] items-center px-4 sm:px-6">
             <div className="flex items-center gap-6">
               <Link to="/" className="hover:opacity-80 transition-opacity pr-4">
