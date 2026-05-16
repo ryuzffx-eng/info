@@ -54,44 +54,42 @@
 :root {
   --radius: 0.75rem;
 
-  /* Deep Atmospheric Theme (Based on your image) */
-  --background: #08050e;
-  /* Very dark purple-black */
-  --foreground: #f0f0f5;
+  /* Deep Atmospheric Theme (Refined for visibility) */
+  --background: #06040a;
+  --foreground: #fcfcfd;
 
-  --card: rgba(10, 10, 12, 0.4);
-  --card-foreground: #f0f0f5;
+  --card: rgba(14, 14, 20, 0.6);
+  --card-foreground: #fcfcfd;
 
   --popover: #0a0a0c;
-  --popover-foreground: #f0f0f5;
+  --popover-foreground: #fcfcfd;
 
   --primary: #10b981;
-  /* Vibrant Green (Emerald 500) */
   --primary-foreground: #ffffff;
 
-  --secondary: #0a0a0c;
-  --secondary-foreground: #f0f0f5;
+  --secondary: #0f0f12;
+  --secondary-foreground: #fcfcfd;
 
-  --muted: #0d0d0f;
-  --muted-foreground: #71717a;
+  --muted: #12121a;
+  --muted-foreground: #94a3b8; /* Increased brightness for readability (Slate 400) */
 
   --accent: #059669;
   --accent-foreground: #ffffff;
 
-  --destructive: #ef4444;
+  --destructive: #f43f5e;
   --destructive-foreground: #ffffff;
 
   --success: #10b981;
-  --warning: #f59e0b;
+  --warning: #fbbf24;
   --neon: var(--primary);
 
-  --border: rgba(255, 255, 255, 0.05);
-  --input: #0d0d0f;
+  --border: rgba(255, 255, 255, 0.08); /* More visible borders */
+  --input: #12121a;
   --ring: var(--primary);
 
   /* Deep Green Glows */
-  --primary-glow: rgba(16, 185, 129, 0.12);
-  --secondary-glow: rgba(16, 185, 129, 0.08);
+  --primary-glow: rgba(16, 185, 129, 0.15);
+  --secondary-glow: rgba(16, 185, 129, 0.1);
 
   --gradient-brand: linear-gradient(135deg, var(--primary), var(--accent));
   --shadow-neon: 0 0 32px rgba(16, 185, 129, 0.2), 0 0 64px rgba(16, 185, 129, 0.1);

@@ -13,7 +13,16 @@ function Licenses() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [infoLicense, setInfoLicense] = useState<any>(null);
+  const [newLicenses, setNewLicenses] = useState<any[] | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
+  const [isStatusSelectOpen, setIsStatusSelectOpen] = useState(false);
+  const [isAppFilterOpen, setIsAppFilterOpen] = useState(false);
+  
+  // Filtering states
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [appFilter, setAppFilter] = useState("all");
   const { data: licenses, isLoading, error, refetch } = useQuery({
     queryKey: ["admin-licenses"],
     queryFn: api.admin.getLicenses,
@@ -26,10 +35,16 @@ function Licenses() {
 
   const generateMutation = useMutation({
     mutationFn: (data: any) => api.reseller.generateLicenses(data),
-    onSuccess: () => {
+    onSuccess: (res: any) => {
       queryClient.invalidateQueries({ queryKey: ["admin-licenses"] });
       toast.success("License(s) generated successfully");
       setIsModalOpen(false);
+      // Show the newly created licenses in a popup
+      if (res && res.keys) {
+        setNewLicenses(res.keys.map((k: string) => ({ key: k })));
+      } else if (res && Array.isArray(res)) {
+        setNewLicenses(res);
+      }
     },
     onError: (err: Error) => {
       toast.error(`Failed to generate: ${err.message}`);
@@ -57,6 +72,24 @@ function Licenses() {
       toast.error(`Failed: ${err.message}`);
       setDeleteId(null);
     }
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids: number[]) => Promise.all(ids.map(id => api.admin.deleteLicense(id))),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-licenses"] });
+      toast.success("Bulk delete successful");
+      setIsBulkDeleteOpen(false);
+    },
+    onError: (err: Error) => toast.error(`Bulk delete failed: ${err.message}`)
+  });
+
+  const filteredLicenses = licenses?.filter((l: any) => {
+    const matchesSearch = l.key.toLowerCase().includes(search.toLowerCase()) || 
+                         (l.app_name || "").toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === "all" || l.status === statusFilter;
+    const matchesApp = appFilter === "all" || l.app_id.toString() === appFilter;
+    return matchesSearch && matchesStatus && matchesApp;
   });
 
   const formatDaysLeft = (expiry: string) => {
@@ -91,6 +124,120 @@ function Licenses() {
           </div>
         }
       />
+
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="relative">
+          <input 
+            type="text" 
+            placeholder="Search keys..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-xl border border-border/60 bg-card/40 p-3.5 pl-10 text-sm outline-none focus:border-primary/50 transition-all"
+          />
+          <div className="absolute left-3.5 top-4 text-muted-foreground/50">
+            <Hash size={14} />
+          </div>
+        </div>
+        
+        {/* Status Filter */}
+        <div className="relative">
+          <button
+            onClick={() => setIsStatusSelectOpen(!isStatusSelectOpen)}
+            className="flex w-full items-center justify-between rounded-xl border border-border/60 bg-card/40 p-3.5 text-sm transition-all hover:bg-card/60"
+          >
+            <div className="flex items-center gap-2 text-muted-foreground">
+               <Activity size={14} />
+               <span className="text-foreground/90 font-medium">{statusFilter === "all" ? "All Statuses" : statusFilter.toUpperCase()}</span>
+            </div>
+            <ChevronDown size={14} className={`transition-transform duration-300 text-muted-foreground ${isStatusSelectOpen ? "rotate-180" : ""}`} />
+          </button>
+          <AnimatePresence>
+            {isStatusSelectOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setIsStatusSelectOpen(false)} />
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute left-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl border border-white/5 bg-card/90 p-1.5 backdrop-blur-xl shadow-2xl"
+                >
+                  {["all", "active", "used", "paused", "expired", "banned"].map(s => (
+                    <button
+                      key={s}
+                      onClick={() => {
+                        setStatusFilter(s);
+                        setIsStatusSelectOpen(false);
+                      }}
+                      className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm transition-all uppercase tracking-tighter font-bold ${statusFilter === s ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}
+                    >
+                      {s === "all" ? "All Statuses" : s}
+                    </button>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* App Filter */}
+        <div className="relative">
+          <button
+            onClick={() => setIsAppFilterOpen(!isAppFilterOpen)}
+            className="flex w-full items-center justify-between rounded-xl border border-border/60 bg-card/40 p-3.5 text-sm transition-all hover:bg-card/60"
+          >
+            <div className="flex items-center gap-2 text-muted-foreground">
+               <Zap size={14} />
+               <span className="text-foreground/90 font-medium">{apps?.find(a => a.id.toString() === appFilter)?.app_name || "All Applications"}</span>
+            </div>
+            <ChevronDown size={14} className={`transition-transform duration-300 text-muted-foreground ${isAppFilterOpen ? "rotate-180" : ""}`} />
+          </button>
+          <AnimatePresence>
+            {isAppFilterOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setIsAppFilterOpen(false)} />
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute left-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl border border-white/5 bg-card/90 p-1.5 backdrop-blur-xl shadow-2xl"
+                >
+                  <button
+                    onClick={() => {
+                      setAppFilter("all");
+                      setIsAppFilterOpen(false);
+                    }}
+                    className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm transition-all font-bold ${appFilter === "all" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}
+                  >
+                    All Applications
+                  </button>
+                  {apps?.map(a => (
+                    <button
+                      key={a.id}
+                      onClick={() => {
+                        setAppFilter(a.id.toString());
+                        setIsAppFilterOpen(false);
+                      }}
+                      className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm transition-all font-bold ${appFilter === a.id.toString() ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}
+                    >
+                      {a.app_name}
+                    </button>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {(statusFilter !== "all" || appFilter !== "all" || search !== "") && (
+          <Btn 
+            variant="ghost" 
+            className="text-red-500 hover:bg-red-500/10 justify-center h-12"
+            onClick={() => setIsBulkDeleteOpen(true)}
+          >
+            <Trash2 size={16} className="mr-2" /> Delete Filtered ({filteredLicenses?.length})
+          </Btn>
+        )}
+      </div>
       {/* Desktop Table */}
       <Card className="hidden md:block !p-0 overflow-hidden border-border/40">
         <div className="scrollbar-thin overflow-x-auto">
@@ -107,7 +254,7 @@ function Licenses() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
-              {licenses?.map((l: any, idx: number) => (
+              {filteredLicenses?.map((l: any, idx: number) => (
                 <tr key={l.key} className="group hover:bg-primary/[0.02] transition-colors">
                   <td className="py-6 px-6 font-mono text-xs text-muted-foreground">
                     {(idx + 1).toString().padStart(2, '0')}
@@ -178,57 +325,59 @@ function Licenses() {
 
       {/* Mobile Grid Layout */}
       <div className="md:hidden space-y-4">
-        {licenses?.map((l: any, idx: number) => (
-          <div key={l.key} className="bg-secondary/40 backdrop-blur-xl rounded-xl border border-white/[0.03] p-6 space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between">
+        {filteredLicenses?.map((l: any, idx: number) => (
+          <div key={l.key} className="bg-card/80 backdrop-blur-xl rounded-2xl border border-white/5 p-6 space-y-6 shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-1 h-full bg-primary/40" />
+            
+            <div className="flex items-center justify-between relative z-10">
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-900/80 text-primary font-bold text-lg border border-white/5">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary font-bold text-xl border border-primary/20 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
                   {(l.app_name || "?").charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-white tracking-tight">{l.app_name || "Unknown"}</div>
-                  <div className="text-[10px] font-bold text-primary uppercase tracking-widest mt-0.5">{l.plan_name || "Standard"} Plan</div>
+                  <div className="text-xl font-black text-white tracking-tight">{l.app_name || "Unknown"}</div>
+                  <div className="inline-flex px-2 py-0.5 rounded-md bg-primary/10 text-[10px] font-black text-primary uppercase tracking-[0.1em] mt-1.5 border border-primary/20">
+                    {l.plan_name || "Standard"} PLAN
+                  </div>
                 </div>
               </div>
-              <div className={`inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-                l.status === "active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : 
+              <div className={`inline-flex items-center justify-center px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                l.status === "active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : 
+                l.status === "used" ? "bg-primary/20 text-primary border border-primary/30" : 
                 l.status === "paused" ? "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20" : 
-                "bg-zinc-900 text-zinc-500 border border-white/5"
+                "bg-zinc-900 text-zinc-400 border border-white/5"
               }`}>
                 {l.status}
               </div>
             </div>
 
-            <div className="space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">License Key</div>
+            <div className="space-y-5 relative z-10">
+              <div className="flex items-center justify-between bg-black/40 p-4 rounded-xl border border-white/5 group-hover:border-primary/20 transition-all duration-500">
+                <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground">License Key</div>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs font-medium text-white bg-black/60 px-4 py-2.5 rounded-lg border border-white/5 shadow-inner">{l.key}</span>
+                  <span className="font-mono text-sm font-bold text-white tracking-wider">{l.key}</span>
                   <CopyIconBtn value={l.key} />
                 </div>
               </div>
               
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Expiration</div>
-                <div className="text-right">
-                   <div className="text-sm font-bold text-white">{l.expiry ? new Date(l.expiry).toLocaleDateString() : "Lifetime"}</div>
-                   <div className="text-[10px] font-medium text-zinc-500 mt-1 uppercase tracking-tighter">{formatDaysLeft(l.expiry) || "No limit"}</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white/[0.02] p-4 rounded-xl border border-white/5">
+                   <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">Expiration</div>
+                   <div className="text-sm font-bold text-foreground">{l.expiry ? new Date(l.expiry).toLocaleDateString() : "Lifetime"}</div>
+                   <div className="text-[10px] font-bold text-primary uppercase tracking-tighter mt-1">{formatDaysLeft(l.expiry) || "No limit"}</div>
+                </div>
+                <div className="bg-white/[0.02] p-4 rounded-xl border border-white/5">
+                   <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">Created</div>
+                   <div className="text-sm font-bold text-foreground">{l.created_at ? new Date(l.created_at).toLocaleDateString() : "N/A"}</div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Created</div>
-                <div className="text-right">
-                   <div className="text-sm font-bold text-white">{l.created_at ? new Date(l.created_at).toLocaleDateString() : "N/A"}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Actions</div>
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setInfoLicense(l)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900/60 text-zinc-400 border border-white/5 active:bg-white/10 transition-all"><Info size={18} /></button>
-                  <button onClick={() => resetHwidMutation.mutate(l.id)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900/60 text-emerald-500/80 border border-white/5 active:bg-emerald-500/20 transition-all"><RefreshCw size={18} /></button>
-                  <button onClick={() => setDeleteId(l.id)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900/60 text-red-500/80 border border-white/5 active:bg-red-500/20 transition-all"><Trash2 size={18} /></button>
+              <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Actions</div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setInfoLicense(l)} className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10 hover:text-foreground transition-all"><Info size={20} /></button>
+                  <button onClick={() => resetHwidMutation.mutate(l.id)} className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all"><RefreshCw size={20} /></button>
+                  <button onClick={() => setDeleteId(l.id)} className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all"><Trash2 size={20} /></button>
                 </div>
               </div>
             </div>
@@ -240,6 +389,21 @@ function Licenses() {
            </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={isBulkDeleteOpen}
+        onClose={() => setIsBulkDeleteOpen(false)}
+        onConfirm={() => bulkDeleteMutation.mutate(filteredLicenses.map((l: any) => l.id))}
+        title="Delete Filtered Licenses?"
+        message={`Are you sure you want to delete all ${filteredLicenses?.length} licenses currently shown by your filters? This action cannot be undone.`}
+        loading={bulkDeleteMutation.isPending}
+      />
+
+      <NewLicensesModal
+        isOpen={!!newLicenses}
+        onClose={() => setNewLicenses(null)}
+        licenses={newLicenses || []}
+      />
 
       <GenerateLicenseModal
         isOpen={isModalOpen}
@@ -501,5 +665,110 @@ function CopyIconBtn({ value }: { value: string }) {
         )}
       </AnimatePresence>
     </button>
+  );
+}
+
+function NewLicensesModal({ isOpen, onClose, licenses }: { isOpen: boolean, onClose: () => void, licenses: any[] }) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-card border border-white/5 shadow-2xl p-8"
+          >
+            <div className="absolute top-0 right-0 p-4">
+              <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex flex-col items-center text-center mb-8">
+              <div className="h-16 w-16 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-4 border border-emerald-500/20">
+                <Zap size={32} />
+              </div>
+              <h2 className="text-2xl font-display font-bold text-foreground">Success!</h2>
+              <p className="text-muted-foreground mt-1">Your new license keys are ready.</p>
+            </div>
+
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              {licenses.map((l, i) => (
+                <div key={i} className="group relative flex items-center justify-between gap-4 p-4 rounded-xl bg-secondary/30 border border-white/5 hover:border-emerald-500/30 transition-all duration-300">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-black/40 flex items-center justify-center text-[10px] font-bold text-muted-foreground border border-white/5">{i + 1}</div>
+                    <code className="text-sm font-mono font-bold text-foreground tracking-wider">{l.key}</code>
+                  </div>
+                  <CopyIconBtn value={l.key} />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 flex gap-3">
+              <Btn 
+                variant="outline" 
+                className="flex-1 h-12" 
+                onClick={() => {
+                  const allKeys = licenses.map(l => l.key).join('\n');
+                  const blob = new Blob([allKeys], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `licenses_${new Date().toISOString().split('T')[0]}.txt`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                  toast.success("File downloaded!");
+                }}
+              >
+                Download TXT
+              </Btn>
+              <Btn 
+                variant="outline" 
+                className="flex-1 h-12" 
+                onClick={() => {
+                  const allKeys = licenses.map(l => l.key).join('\n');
+                  const fallbackCopy = (text: string) => {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                      document.execCommand('copy');
+                      toast.success("All keys copied!");
+                    } catch (err) {
+                      toast.error("Failed to copy");
+                    }
+                    document.body.removeChild(textArea);
+                  };
+
+                  if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(allKeys).then(() => {
+                      toast.success("All keys copied!");
+                    }).catch(() => fallbackCopy(allKeys));
+                  } else {
+                    fallbackCopy(allKeys);
+                  }
+                }}
+              >
+                Copy All Keys
+              </Btn>
+              <Btn className="flex-1 h-12" onClick={onClose}>
+                Done
+              </Btn>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
