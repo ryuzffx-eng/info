@@ -60,42 +60,16 @@ export function DashboardShell({ children, variant = "admin" }: { children: Reac
   const isReseller = user?.role === "admin" || user?.role === "reseller";
 
   return (
-    <div className="relative min-h-screen bg-[#030303] selection:bg-primary/30 selection:text-primary-foreground text-zinc-200 font-sans overflow-hidden">
-      {/* Dynamic Background Elements */}
+    <div className="relative min-h-screen bg-background selection:bg-primary/30 selection:text-primary-foreground text-foreground font-sans overflow-hidden">
+      {/* Background Grid & Glows (Synced with global styles) */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(16,185,129,0.07),transparent_70%)]" />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
-        
-        {/* Animated Glow Spots */}
-        <motion.div 
-          animate={{ 
-            x: [0, 100, 0], 
-            y: [0, 50, 0],
-            opacity: [0.1, 0.15, 0.1]
-          }} 
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-emerald-500/10 blur-[120px]" 
-        />
-        <motion.div 
-          animate={{ 
-            x: [0, -80, 0], 
-            y: [0, 100, 0],
-            opacity: [0.05, 0.1, 0.05]
-          }} 
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[20%] -right-[5%] w-[30%] h-[50%] rounded-full bg-teal-500/5 blur-[100px]" 
-        />
-        
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 grid-bg opacity-[0.15] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
-        
-        {/* Grain Overlay */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+        <div className="absolute inset-0 grid-bg opacity-[0.2] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(62,207,142,0.1),transparent_60%)]" />
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* Top Navigation Bar */}
-        <nav className="sticky top-0 z-50 w-full border-b border-white/[0.05] bg-black/40 backdrop-blur-2xl">
+        <nav className="sticky top-0 z-50 w-full border-b border-white/[0.05] bg-black/60 backdrop-blur-2xl">
           <div className="mx-auto flex h-16 max-w-[1400px] items-center px-4 sm:px-6">
             <div className="flex items-center gap-6">
               <Link to="/" className="hover:opacity-80 transition-opacity pr-4">
@@ -167,7 +141,7 @@ export function DashboardShell({ children, variant = "admin" }: { children: Reac
                     {user?.avatar_url ? (
                       <img src={user.avatar_url} alt={user.username} className="h-full w-full object-cover" />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900 text-xs font-bold text-white uppercase tracking-tighter">
+                      <div className="flex h-full w-full items-center justify-center bg-zinc-900 text-xs font-bold text-white uppercase tracking-tighter">
                         {user?.username?.[0] || "U"}
                       </div>
                     )}
@@ -209,7 +183,7 @@ function NavTab({ label, items, active, onHover, onLeave }: any) {
             transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             className="absolute left-0 top-full pt-2"
           >
-            <div className="w-[240px] overflow-hidden rounded-xl border border-white/[0.08] bg-[#0A0A0A]/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-3xl">
+            <div className="w-[240px] overflow-hidden rounded-xl border border-white/[0.08] bg-black/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-3xl">
               <div className="grid gap-0.5">
                 {items.map((item: any) => (
                   <Link
