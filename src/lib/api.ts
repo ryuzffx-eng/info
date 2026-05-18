@@ -115,5 +115,7 @@ export const api = {
   reseller: {
     generateLicenses: (data: any) => apiFetch("/reseller/generate-licenses", { method: "POST", body: JSON.stringify(data) }),
     getMyLicenses: () => apiFetch("/reseller/my-licenses"),
+    getProfile: () => apiFetch("/reseller/profile"),
+    getApplications: () => apiFetch("/reseller/applications"),
   }
 };

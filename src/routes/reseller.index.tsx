@@ -1,29 +1,78 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PageHeader, StatCard, Card, Btn, Badge } from "@/components/admin/ui";
-import { Wallet, Key, ShoppingCart, TrendingUp, Plus, Copy } from "lucide-react";
+import { Wallet, Key, ShoppingCart, TrendingUp, Plus, Copy, Loader2 } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer, XAxis, Tooltip, CartesianGrid } from "recharts";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/reseller/")({ component: ResellerHome });
 
 const sales = Array.from({ length: 14 }, (_, i) => ({ d: `${i+1}`, v: 5 + Math.random() * 25 }));
-const recentKeys = Array.from({ length: 5 }, () => ({
-  key: `EMRT-${(Math.random()*1e16).toString(36).slice(0,4).toUpperCase()}-${(Math.random()*1e16).toString(36).slice(0,4).toUpperCase()}`,
-  app: ["Phantom Loader", "Eclipse Suite"][Math.floor(Math.random()*2)],
-  duration: ["30 days", "Lifetime"][Math.floor(Math.random()*2)],
-}));
 
 function ResellerHome() {
+  const navigate = useNavigate();
+
+  const { data: profile, isLoading: isProfileLoading } = useQuery({
+    queryKey: ["reseller-profile"],
+    queryFn: () => api.reseller.getProfile(),
+    retry: false
+  });
+
+  const { data: licenses, isLoading: isLicensesLoading } = useQuery({
+    queryKey: ["reseller-licenses"],
+    queryFn: () => api.reseller.getMyLicenses(),
+    retry: false
+  });
+
+  if (isProfileLoading || isLicensesLoading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const recentKeys = licenses?.slice(0, 5) || [];
+  const totalKeys = licenses?.length || 0;
+  const activeCustomers = new Set(licenses?.filter((l: any) => l.hwid).map((l: any) => l.hwid)).size;
+  const estimatedRevenue = totalKeys * 15; // Assume $15 average per key
+
   return (
     <div>
-      <PageHeader title="Reseller Hub" subtitle="Manage your credits, keys, and customers."
-        action={<Btn><Plus size={14} /> Generate license</Btn>} />
+      <PageHeader 
+        title="Reseller Hub" 
+        subtitle={profile?.role === "admin" ? "Global Administrative Overview." : "Manage your credits, keys, and customers."}
+        action={<Btn onClick={() => navigate({ to: "/reseller/licenses" })}><Plus size={14} /> Generate license</Btn>} 
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Credit balance" value="482" delta="Top up anytime" icon={Wallet} />
-        <StatCard label="Keys generated" value="1,240" delta="+24 this week" icon={Key} accent="accent" />
-        <StatCard label="Active customers" value="312" icon={ShoppingCart} />
-        <StatCard label="Revenue (mo)" value="$3,820" delta="+12%" icon={TrendingUp} accent="warning" />
+        <StatCard 
+          label="Credit balance" 
+          value={profile?.role === "admin" ? "Unlimited" : (profile?.credits || 0).toLocaleString()} 
+          delta={profile?.role === "admin" ? "Admin Privileges" : "Top up anytime"} 
+          icon={Wallet} 
+        />
+        <StatCard 
+          label="Keys generated" 
+          value={totalKeys.toLocaleString()} 
+          delta={profile?.role === "admin" ? "Global System Count" : "Lifetime generated"} 
+          icon={Key} 
+          accent="accent" 
+        />
+        <StatCard 
+          label="Active customers" 
+          value={activeCustomers.toLocaleString()} 
+          delta="Bound Hardware IDs"
+          icon={ShoppingCart} 
+        />
+        <StatCard 
+          label="Estimated Revenue" 
+          value={`$${estimatedRevenue.toLocaleString()}`} 
+          delta={profile?.role === "admin" ? "Global Sales Vol" : "Based on issued keys"} 
+          icon={TrendingUp} 
+          accent="warning" 
+        />
       </div>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-3">
@@ -40,20 +89,32 @@ function ResellerHome() {
           </ResponsiveContainer>
         </Card>
         <Card>
-          <div className="mb-4 flex items-center justify-between"><h3 className="font-semibold">Recent keys</h3><Badge>+5</Badge></div>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-semibold">Recent keys</h3>
+            <Badge>{recentKeys.length > 0 ? `+${recentKeys.length}` : "0"}</Badge>
+          </div>
           <ul className="space-y-2.5">
-            {recentKeys.map(k => (
-              <li key={k.key} className="rounded-lg border border-border/40 bg-background/30 p-3 text-xs">
+            {recentKeys.map((k: any) => (
+              <li key={k.key} className="rounded-lg border border-border/40 bg-background/30 p-3 text-xs hover:border-primary/20 transition-all duration-300">
                 <div className="flex items-center justify-between">
                   <code className="font-mono">{k.key}</code>
-                  <button onClick={() => { navigator.clipboard.writeText(k.key); toast.success("Copied"); }}><Copy size={11} className="text-primary" /></button>
+                  <button onClick={() => { navigator.clipboard.writeText(k.key); toast.success("Copied key"); }}><Copy size={11} className="text-primary" /></button>
                 </div>
-                <div className="mt-1 text-[11px] text-muted-foreground">{k.app} • {k.duration}</div>
+                <div className="mt-1 text-[11px] text-muted-foreground flex items-center justify-between">
+                  <span>{k.app_name} • {k.duration} Days</span>
+                  <span className={`capitalize ${k.status === 'active' ? 'text-emerald-400' : 'text-primary'}`}>{k.status}</span>
+                </div>
               </li>
             ))}
+            {recentKeys.length === 0 && (
+              <div className="text-center py-8 text-xs text-muted-foreground italic">
+                No keys generated yet.
+              </div>
+            )}
           </ul>
         </Card>
       </div>
     </div>
   );
 }
+
