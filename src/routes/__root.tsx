@@ -94,13 +94,11 @@ function RootComponent() {
     }
   }, [isInitialLoading]);
 
-  if (isInitialLoading) return <LoadingScreen />;
-
   return (
     <ThemeProvider>
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
         <QueryClientProvider client={queryClient}>
-          <Outlet />
+          {isInitialLoading ? <LoadingScreen /> : <Outlet />}
           <Toaster theme="dark" position="top-right" richColors />
         </QueryClientProvider>
       </GoogleOAuthProvider>

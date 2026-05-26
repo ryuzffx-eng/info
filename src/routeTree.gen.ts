@@ -20,6 +20,7 @@ import { Route as PublicIndexRouteImport } from './routes/_public.index'
 import { Route as ResellerUsersRouteImport } from './routes/reseller.users'
 import { Route as ResellerLogsRouteImport } from './routes/reseller.logs'
 import { Route as ResellerLicensesRouteImport } from './routes/reseller.licenses'
+import { Route as ResellerBypassRouteImport } from './routes/reseller.bypass'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminStorePagesRouteImport } from './routes/admin.store-pages'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
@@ -28,6 +29,7 @@ import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminLicensesRouteImport } from './routes/admin.licenses'
 import { Route as AdminFilesRouteImport } from './routes/admin.files'
+import { Route as AdminBypassRouteImport } from './routes/admin.bypass'
 import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as PublicStatusRouteImport } from './routes/_public.status'
@@ -88,6 +90,11 @@ const ResellerLicensesRoute = ResellerLicensesRouteImport.update({
   path: '/licenses',
   getParentRoute: () => ResellerRoute,
 } as any)
+const ResellerBypassRoute = ResellerBypassRouteImport.update({
+  id: '/bypass',
+  path: '/bypass',
+  getParentRoute: () => ResellerRoute,
+} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -128,6 +135,11 @@ const AdminFilesRoute = AdminFilesRouteImport.update({
   path: '/files',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBypassRoute = AdminBypassRouteImport.update({
+  id: '/bypass',
+  path: '/bypass',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminApplicationsRoute = AdminApplicationsRouteImport.update({
   id: '/applications',
   path: '/applications',
@@ -165,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/status': typeof PublicStatusRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/bypass': typeof AdminBypassRoute
   '/admin/files': typeof AdminFilesRoute
   '/admin/licenses': typeof AdminLicensesRoute
   '/admin/logs': typeof AdminLogsRoute
@@ -173,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/store-pages': typeof AdminStorePagesRoute
   '/admin/users': typeof AdminUsersRoute
+  '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
   '/reseller/logs': typeof ResellerLogsRoute
   '/reseller/users': typeof ResellerUsersRoute
@@ -187,6 +201,7 @@ export interface FileRoutesByTo {
   '/status': typeof PublicStatusRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/bypass': typeof AdminBypassRoute
   '/admin/files': typeof AdminFilesRoute
   '/admin/licenses': typeof AdminLicensesRoute
   '/admin/logs': typeof AdminLogsRoute
@@ -195,6 +210,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/store-pages': typeof AdminStorePagesRoute
   '/admin/users': typeof AdminUsersRoute
+  '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
   '/reseller/logs': typeof ResellerLogsRoute
   '/reseller/users': typeof ResellerUsersRoute
@@ -214,6 +230,7 @@ export interface FileRoutesById {
   '/_public/status': typeof PublicStatusRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/bypass': typeof AdminBypassRoute
   '/admin/files': typeof AdminFilesRoute
   '/admin/licenses': typeof AdminLicensesRoute
   '/admin/logs': typeof AdminLogsRoute
@@ -222,6 +239,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/store-pages': typeof AdminStorePagesRoute
   '/admin/users': typeof AdminUsersRoute
+  '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
   '/reseller/logs': typeof ResellerLogsRoute
   '/reseller/users': typeof ResellerUsersRoute
@@ -242,6 +260,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/admin/analytics'
     | '/admin/applications'
+    | '/admin/bypass'
     | '/admin/files'
     | '/admin/licenses'
     | '/admin/logs'
@@ -250,6 +269,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/store-pages'
     | '/admin/users'
+    | '/reseller/bypass'
     | '/reseller/licenses'
     | '/reseller/logs'
     | '/reseller/users'
@@ -264,6 +284,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/admin/analytics'
     | '/admin/applications'
+    | '/admin/bypass'
     | '/admin/files'
     | '/admin/licenses'
     | '/admin/logs'
@@ -272,6 +293,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/store-pages'
     | '/admin/users'
+    | '/reseller/bypass'
     | '/reseller/licenses'
     | '/reseller/logs'
     | '/reseller/users'
@@ -290,6 +312,7 @@ export interface FileRouteTypes {
     | '/_public/status'
     | '/admin/analytics'
     | '/admin/applications'
+    | '/admin/bypass'
     | '/admin/files'
     | '/admin/licenses'
     | '/admin/logs'
@@ -298,6 +321,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/store-pages'
     | '/admin/users'
+    | '/reseller/bypass'
     | '/reseller/licenses'
     | '/reseller/logs'
     | '/reseller/users'
@@ -393,6 +417,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResellerLicensesRouteImport
       parentRoute: typeof ResellerRoute
     }
+    '/reseller/bypass': {
+      id: '/reseller/bypass'
+      path: '/bypass'
+      fullPath: '/reseller/bypass'
+      preLoaderRoute: typeof ResellerBypassRouteImport
+      parentRoute: typeof ResellerRoute
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -447,6 +478,13 @@ declare module '@tanstack/react-router' {
       path: '/files'
       fullPath: '/admin/files'
       preLoaderRoute: typeof AdminFilesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/bypass': {
+      id: '/admin/bypass'
+      path: '/bypass'
+      fullPath: '/admin/bypass'
+      preLoaderRoute: typeof AdminBypassRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/applications': {
@@ -507,6 +545,7 @@ const PublicRouteWithChildren =
 interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminApplicationsRoute: typeof AdminApplicationsRoute
+  AdminBypassRoute: typeof AdminBypassRoute
   AdminFilesRoute: typeof AdminFilesRoute
   AdminLicensesRoute: typeof AdminLicensesRoute
   AdminLogsRoute: typeof AdminLogsRoute
@@ -521,6 +560,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminApplicationsRoute: AdminApplicationsRoute,
+  AdminBypassRoute: AdminBypassRoute,
   AdminFilesRoute: AdminFilesRoute,
   AdminLicensesRoute: AdminLicensesRoute,
   AdminLogsRoute: AdminLogsRoute,
@@ -535,6 +575,7 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface ResellerRouteChildren {
+  ResellerBypassRoute: typeof ResellerBypassRoute
   ResellerLicensesRoute: typeof ResellerLicensesRoute
   ResellerLogsRoute: typeof ResellerLogsRoute
   ResellerUsersRoute: typeof ResellerUsersRoute
@@ -542,6 +583,7 @@ interface ResellerRouteChildren {
 }
 
 const ResellerRouteChildren: ResellerRouteChildren = {
+  ResellerBypassRoute: ResellerBypassRoute,
   ResellerLicensesRoute: ResellerLicensesRoute,
   ResellerLogsRoute: ResellerLogsRoute,
   ResellerUsersRoute: ResellerUsersRoute,

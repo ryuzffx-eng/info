@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { 
   Search, Ban, RefreshCw, Trash2, Loader2, ShieldCheck, 
   User as UserIcon, Eye, X, Mail, Calendar, Shield, Activity,
-  CheckCircle2, AlertCircle
+  CheckCircle2, AlertCircle, Bell, BellOff
 } from "lucide-react";
-import { PageHeader, Card, Badge, Btn } from "@/components/admin/ui";
+import { PageHeader, Card, Badge, Btn, CustomSelect } from "@/components/admin/ui";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -15,12 +15,29 @@ export const Route = createFileRoute("/admin/users")({ component: UsersPage });
 
 function UsersPage() {
   const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All statuses");
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const queryClient = useQueryClient();
   
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-users"],
     queryFn: api.admin.getUsers,
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: ["settings"],
+    queryFn: api.admin.getSettings,
+  });
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: (data: Record<string, string>) => api.admin.updateSettings(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      toast.success("Discord log settings updated!");
+    },
+    onError: (err: any) => {
+      toast.error(`Failed to update settings: ${err.message}`);
+    }
   });
 
   const updateUser = useMutation({
@@ -43,10 +60,14 @@ function UsersPage() {
     onError: (err: any) => toast.error(err.message),
   });
 
-  const filtered = users?.filter((u: any) => 
-    u.username.toLowerCase().includes(q.toLowerCase()) || 
-    u.email.toLowerCase().includes(q.toLowerCase())
-  ) || [];
+  const filtered = users?.filter((u: any) => {
+    const matchesQuery = u.username.toLowerCase().includes(q.toLowerCase()) || 
+      u.email.toLowerCase().includes(q.toLowerCase());
+    
+    if (statusFilter === "Active") return matchesQuery && u.is_active;
+    if (statusFilter === "Banned") return matchesQuery && !u.is_active;
+    return matchesQuery;
+  }) || [];
 
   if (isLoading) {
     return (
@@ -58,7 +79,43 @@ function UsersPage() {
 
   return (
     <div>
-      <PageHeader title="Users" subtitle="Manage all registered users and their permissions." />
+      <PageHeader 
+        title="Users" 
+        subtitle="Manage all registered users and their permissions." 
+        action={
+          settings && (
+            <button
+              onClick={() => {
+                const isActive = settings.discord_log_users !== "false";
+                const newSettings = { ...settings, discord_log_users: isActive ? "false" : "true" };
+                updateSettingsMutation.mutate(newSettings);
+              }}
+              className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl transition-all duration-300 active:scale-95 cursor-pointer ${
+                settings.discord_log_users !== "false"
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:border-emerald-500/50 hover:bg-emerald-500/15"
+                  : "border-border/60 bg-card/40 text-muted-foreground hover:border-white/20 hover:text-foreground"
+              }`}
+            >
+              {settings.discord_log_users !== "false" ? (
+                <>
+                  <Bell size={14} className="animate-bounce" />
+                  <div className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+                  </div>
+                  <span>Discord Logs: Active</span>
+                </>
+              ) : (
+                <>
+                  <BellOff size={14} className="text-zinc-500" />
+                  <span className="h-2 w-2 rounded-full bg-zinc-600"></span>
+                  <span>Discord Logs: Muted</span>
+                </>
+              )}
+            </button>
+          )
+        }
+      />
       <Card>
         <div className="mb-5 flex items-center gap-3">
           <div className="relative max-w-sm flex-1">
@@ -66,9 +123,7 @@ function UsersPage() {
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search users..."
               className="w-full rounded-lg border border-border/60 bg-background/40 py-2 pl-9 pr-3 text-sm outline-none focus:border-primary/50 transition-all focus:bg-background/60" />
           </div>
-          <select className="rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-sm outline-none cursor-pointer hover:bg-background/60 transition-all">
-            <option>All statuses</option><option>Active</option><option>Banned</option>
-          </select>
+          <CustomSelect value={statusFilter} onChange={setStatusFilter} options={["All statuses", "Active", "Banned"]} className="h-9" />
         </div>
         
         {/* Desktop Table */}

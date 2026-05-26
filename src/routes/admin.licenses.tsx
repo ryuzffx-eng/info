@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Pause, Trash2, Copy, Loader2, RefreshCcw, X, ChevronDown, Info, RefreshCw, Check, Calendar, Clock, Shield, Hash, Zap, Activity } from "lucide-react";
+import { Plus, Pause, Trash2, Copy, Loader2, RefreshCcw, X, ChevronDown, Info, RefreshCw, Check, Calendar, Clock, Shield, Hash, Zap, Activity, Bell, BellOff } from "lucide-react";
 import { PageHeader, Card, Badge, Btn, ConfirmModal } from "@/components/admin/ui";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,6 +26,22 @@ function Licenses() {
   const { data: licenses, isLoading, error, refetch } = useQuery({
     queryKey: ["admin-licenses"],
     queryFn: api.admin.getLicenses,
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: ["settings"],
+    queryFn: api.admin.getSettings,
+  });
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: (data: Record<string, string>) => api.admin.updateSettings(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      toast.success("Discord log settings updated!");
+    },
+    onError: (err: any) => {
+      toast.error(`Failed to update settings: ${err.message}`);
+    }
   });
 
   const { data: apps } = useQuery({
@@ -116,7 +132,38 @@ function Licenses() {
         title="Licenses"
         subtitle="Generate and manage license keys."
         action={
-          <div className="flex gap-2">
+          <div className="flex items-center gap-4 flex-wrap">
+            {settings && (
+              <button
+                onClick={() => {
+                  const isActive = settings.discord_log_licenses !== "false";
+                  const newSettings = { ...settings, discord_log_licenses: isActive ? "false" : "true" };
+                  updateSettingsMutation.mutate(newSettings);
+                }}
+                className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl transition-all duration-300 active:scale-95 cursor-pointer ${
+                  settings.discord_log_licenses !== "false"
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:border-emerald-500/50 hover:bg-emerald-500/15"
+                    : "border-border/60 bg-card/40 text-muted-foreground hover:border-white/20 hover:text-foreground"
+                }`}
+              >
+                {settings.discord_log_licenses !== "false" ? (
+                  <>
+                    <Bell size={14} className="animate-bounce" />
+                    <div className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+                    </div>
+                    <span>Discord Logs: Active</span>
+                  </>
+                ) : (
+                  <>
+                    <BellOff size={14} className="text-zinc-500" />
+                    <span className="h-2 w-2 rounded-full bg-zinc-600"></span>
+                    <span>Discord Logs: Muted</span>
+                  </>
+                )}
+              </button>
+            )}
             <Btn variant="outline" onClick={() => refetch()}><RefreshCcw size={14} /></Btn>
             <Btn onClick={() => setIsModalOpen(true)}>
               <Plus size={14} /> Generate License

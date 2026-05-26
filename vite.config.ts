@@ -49,6 +49,6 @@ export default defineConfig(({ command }) => ({
   server: {
     host: "::",
     port: 8080,
-    allowedHosts: ["192.168.29.49.nip.io"],
+    allowedHosts: ["192.168.29.95.nip.io"],
   },
 }));

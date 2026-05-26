@@ -20,6 +20,7 @@ const resellerNav = [
   { to: "/reseller", icon: LayoutDashboard, label: "Overview", description: "Reseller dashboard" },
   { to: "/reseller/licenses", icon: Key, label: "Licenses", description: "Manage customer keys" },
   { to: "/reseller/users", icon: Users, label: "Users", description: "Customer account list" },
+  { to: "/reseller/bypass", icon: Shield, label: "Bypass", description: "Manage Bypass Whitelist" },
   { to: "/reseller/logs", icon: ScrollText, label: "Logs", description: "Recent reseller activity" },
 ];
 
@@ -33,6 +34,7 @@ const adminManagement = [
   { to: "/admin/users", icon: Users, label: "Users", description: "User management system" },
   { to: "/admin/resellers", icon: UsersRound, label: "Resellers", description: "Manage reseller network" },
   { to: "/admin/licenses", icon: Key, label: "Licenses", description: "Manage all license keys" },
+  { to: "/admin/bypass", icon: Shield, label: "Bypass", description: "Bypass UID Whitelist" },
 ];
 
 const adminCatalog = [

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Search, Sparkles, X, Check, Star, Loader2, Tag, Lock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { CustomSelect } from "@/components/admin/ui";
 
 export const Route = createFileRoute("/_public/marketplace")({
   head: () => ({ meta: [{ title: "Marketplace — Emerite Store" }, { name: "description", content: "Browse premium software products and licenses." }] }),
@@ -67,10 +68,7 @@ function Marketplace() {
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products..."
             className="w-full rounded-xl border border-border/60 bg-card/40 py-3 pl-11 pr-4 text-sm backdrop-blur-xl outline-none transition-colors focus:border-primary/50" />
         </div>
-        <select value={sort} onChange={(e) => setSort(e.target.value)}
-          className="rounded-xl border border-border/60 bg-card/40 px-4 py-3 text-sm backdrop-blur-xl outline-none focus:border-primary/50">
-          {["Featured", "Price ↑", "Price ↓", "Rating"].map(o => <option key={o}>{o}</option>)}
-        </select>
+        <CustomSelect value={sort} onChange={setSort} options={["Featured", "Price ↑", "Price ↓", "Rating"]} />
       </div>
 
       <div className="scrollbar-thin mt-5 flex gap-2 overflow-x-auto pb-2">

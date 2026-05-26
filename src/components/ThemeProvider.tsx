@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { api } from "@/lib/api";
 
 type ThemeColor = {
   name: string;
@@ -152,6 +153,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("app-theme", name);
     }
   };
+
+  useEffect(() => {
+    const fetchGlobalTheme = async () => {
+      try {
+        const data = await api.theme.getGlobal();
+        if (data && data.theme && themes[data.theme]) {
+          setThemeState(data.theme);
+          localStorage.setItem("app-theme", data.theme);
+        }
+      } catch (err) {
+        console.error("Failed to fetch global theme:", err);
+      }
+    };
+    fetchGlobalTheme();
+  }, []);
 
   useEffect(() => {
     const selectedTheme = themes[theme];

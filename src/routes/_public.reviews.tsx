@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
+import { CustomSelect } from "@/components/admin/ui";
 
 export const Route = createFileRoute("/_public/reviews")({
   head: () => ({ meta: [{ title: "Reviews — Emerite Store" }, { name: "description", content: "Real customer reviews and ratings." }] }),
@@ -132,11 +133,15 @@ function ReviewsPage() {
               <div className="mt-5 space-y-4">
                 <div>
                   <label className="text-xs uppercase tracking-wider text-muted-foreground">Product</label>
-                  <select required value={productId} onChange={(e) => setProductId(Number(e.target.value))}
-                    className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50">
-                    <option value="">Select a product...</option>
-                    {products.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={productId ? String(productId) : ""}
+                    onChange={(val) => setProductId(val ? Number(val) : "")}
+                    options={[
+                      { label: "Select a product...", value: "" },
+                      ...products.map((p: any) => ({ label: p.name, value: String(p.id) }))
+                    ]}
+                    className="mt-2 w-full animate-none"
+                  />
                 </div>
                 <div>
                   <label className="text-xs uppercase tracking-wider text-muted-foreground">Rating</label>

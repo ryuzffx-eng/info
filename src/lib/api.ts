@@ -111,11 +111,36 @@ export const api = {
     getUserDetails: (id: number) => apiFetch(`/admin/users/${id}`),
     updateUser: (id: number, data: any) => apiFetch(`/admin/users/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
     deleteUser: (id: number) => apiFetch(`/admin/users/${id}`, { method: "DELETE" }),
+    getSettings: () => apiFetch("/admin/settings"),
+    updateSettings: (settings: Record<string, string>) => apiFetch("/admin/settings", { method: "POST", body: JSON.stringify({ settings }) }),
   },
   reseller: {
     generateLicenses: (data: any) => apiFetch("/reseller/generate-licenses", { method: "POST", body: JSON.stringify(data) }),
     getMyLicenses: () => apiFetch("/reseller/my-licenses"),
     getProfile: () => apiFetch("/reseller/profile"),
     getApplications: () => apiFetch("/reseller/applications"),
+  },
+  bypass: {
+    getStats: () => apiFetch("/bypass/stats"),
+    getWhitelist: (region?: string) => apiFetch(`/bypass/whitelist${region ? `?region=${region}` : ""}`),
+    addToWhitelist: (data: any) => apiFetch("/bypass/whitelist", { method: "POST", body: JSON.stringify(data) }),
+    removeFromWhitelist: (uid: string) => apiFetch(`/bypass/whitelist/${uid}`, { method: "DELETE" }),
+    extendWhitelist: (uid: string, duration: string) => apiFetch(`/bypass/whitelist/${uid}/extend`, { method: "PATCH", body: JSON.stringify({ duration }) }),
+    purgeExpired: () => apiFetch("/bypass/whitelist/purge", { method: "POST" }),
+    getBlacklist: () => apiFetch("/bypass/blacklist"),
+    addToBlacklist: (data: any) => apiFetch("/bypass/blacklist", { method: "POST", body: JSON.stringify(data) }),
+    removeFromBlacklist: (uid: string) => apiFetch(`/bypass/blacklist/${uid}`, { method: "DELETE" }),
+    checkUid: (uid: string) => apiFetch(`/bypass/check/${uid}`),
+    getLogs: (uid?: string, limit?: number) => {
+      const params = new URLSearchParams();
+      if (uid) params.append("uid", uid);
+      if (limit) params.append("limit", limit.toString());
+      return apiFetch(`/bypass/logs?${params.toString()}`);
+    }
+  },
+  theme: {
+    getGlobal: () => apiFetch("/theme"),
+    updateGlobal: (themeName: string) => apiFetch("/admin/theme", { method: "POST", body: JSON.stringify({ theme: themeName }) }),
   }
 };
+
