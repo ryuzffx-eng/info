@@ -240,8 +240,17 @@ function ResellerLicenses() {
                       </button>
                     </div>
                   </td>
-                  <td className="px-4">{l.app_name}</td>
-                  <td className="px-4">{l.duration} Days</td>
+                  <td className="px-4">
+                    <div className="flex items-center gap-1.5">
+                      {l.app_name}
+                      {l.is_super_license && (
+                        <span className="inline-flex px-1.5 py-0.5 rounded bg-amber-500/10 text-[9px] font-bold text-amber-400 border border-amber-500/20">
+                          SUPER
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4">{l.is_super_license ? "Super (Unlimited)" : `${l.duration} Days`}</td>
                   <td className="px-4">
                     <Badge tone={l.status === "active" ? "primary" : l.status === "used" ? "success" : "muted"}>
                       {l.status}
@@ -313,10 +322,12 @@ function GenerateLicenseModal({ isOpen, onClose, onGenerate, loading, apps, prof
   const [amount, setAmount] = useState("1");
   const [style, setStyle] = useState("DASHED");
   const [isAppSelectOpen, setIsAppSelectOpen] = useState(false);
+  const [isSuperLicense, setIsSuperLicense] = useState(false);
 
   useEffect(() => {
     if (apps.length > 0 && !appId) setAppId(apps[0].id.toString());
-  }, [apps]);
+    if (!isOpen) setIsSuperLicense(false);
+  }, [apps, isOpen]);
 
   const handleGenerate = () => {
     const qty = parseInt(amount);
@@ -329,7 +340,8 @@ function GenerateLicenseModal({ isOpen, onClose, onGenerate, loading, apps, prof
       app_id: parseInt(appId),
       duration_days: parseInt(duration),
       amount: qty,
-      key_style: style
+      key_style: style,
+      is_super_license: isSuperLicense
     });
   };
 
@@ -407,17 +419,39 @@ function GenerateLicenseModal({ isOpen, onClose, onGenerate, loading, apps, prof
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Key Style</label>
                 <div className="mt-2 grid grid-cols-3 gap-2">
-                  <button onClick={() => setStyle("ALPHANUMERIC")} className={`flex flex-col items-center gap-1 rounded-xl border py-4 px-2 transition-all ${style === "ALPHANUMERIC" ? "border-primary bg-primary/10 text-primary" : "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/30"}`}>
+                  <button type="button" onClick={() => setStyle("ALPHANUMERIC")} className={`flex flex-col items-center gap-1 rounded-xl border py-4 px-2 transition-all ${style === "ALPHANUMERIC" ? "border-primary bg-primary/10 text-primary" : "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/30"}`}>
                     <span className="text-[10px] font-bold uppercase tracking-widest">Standard</span>
                   </button>
-                  <button onClick={() => setStyle("NUMERIC")} className={`flex flex-col items-center gap-1 rounded-xl border py-4 px-2 transition-all ${style === "NUMERIC" ? "border-primary bg-primary/10 text-primary" : "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/30"}`}>
+                  <button type="button" onClick={() => setStyle("NUMERIC")} className={`flex flex-col items-center gap-1 rounded-xl border py-4 px-2 transition-all ${style === "NUMERIC" ? "border-primary bg-primary/10 text-primary" : "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/30"}`}>
                     <span className="text-[10px] font-bold uppercase tracking-widest">Numeric</span>
                   </button>
-                  <button onClick={() => setStyle("DASHED")} className={`flex flex-col items-center gap-1 rounded-xl border py-4 px-2 transition-all ${style === "DASHED" ? "border-primary bg-primary/10 text-primary" : "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/30"}`}>
+                  <button type="button" onClick={() => setStyle("DASHED")} className={`flex flex-col items-center gap-1 rounded-xl border py-4 px-2 transition-all ${style === "DASHED" ? "border-primary bg-primary/10 text-primary" : "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/30"}`}>
                     <span className="text-[10px] font-bold uppercase tracking-widest">Dashed</span>
                   </button>
                 </div>
               </div>
+
+              {profile?.role === "admin" && (
+                <div className="flex items-center justify-between p-4 rounded-xl border border-border/60 bg-card/40 animate-fade-in">
+                  <div>
+                    <label className="text-sm font-bold text-foreground block">Super License</label>
+                    <span className="text-xs text-muted-foreground block mt-0.5">Allows login on unlimited devices without HWID lock</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsSuperLicense(!isSuperLicense)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                      isSuperLicense ? "bg-primary" : "bg-zinc-700"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        isSuperLicense ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              )}
 
               <Btn className="w-full justify-center py-6 mt-4" onClick={handleGenerate} disabled={loading || !appId}>
                 {loading ? <Loader2 size={16} className="animate-spin" /> : "Generate Now"}
@@ -551,7 +585,7 @@ function LicenseInfoModal({ license, onClose, onResetHwid, resetLoading, isAdmin
             <div className="grid grid-cols-2 gap-4">
               <InfoItem label="STATUS" value={license.status} icon={<Activity size={14} />} 
                 className={license.status === 'active' ? 'text-emerald-400' : 'text-primary'} />
-              <InfoItem label="DURATION" value={`${license.duration} Days`} icon={<Clock size={14} />} />
+              <InfoItem label="DURATION" value={license.is_super_license ? "Super (Unlimited)" : `${license.duration} Days`} icon={<Clock size={14} />} />
             </div>
 
             <InfoItem label="HARDWARE ID (HWID)" value={license.hwid || "Not bound yet"} icon={<Shield size={14} />} mono copyable={!!license.hwid} />
