@@ -500,11 +500,15 @@ function GenerateLicenseModal({ isOpen, onClose, onGenerate, loading, apps }: { 
   const [style, setStyle] = useState("ALPHANUMERIC");
   const [isAppSelectOpen, setIsAppSelectOpen] = useState(false);
   const [isSuperLicense, setIsSuperLicense] = useState(false);
+  const [customKey, setCustomKey] = useState("");
 
   // Reset appId when apps load or modal opens
   useEffect(() => {
     if (apps.length > 0 && !appId) setAppId(apps[0].id.toString());
-    if (!isOpen) setIsSuperLicense(false);
+    if (!isOpen) {
+      setIsSuperLicense(false);
+      setCustomKey("");
+    }
   }, [apps, isOpen]);
 
   return (
@@ -560,6 +564,23 @@ function GenerateLicenseModal({ isOpen, onClose, onGenerate, loading, apps }: { 
                 </div>
               </div>
 
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Custom Key (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="Enter custom key (e.g. MY-SPECIAL-KEY)"
+                  value={customKey}
+                  onChange={(e) => {
+                    setCustomKey(e.target.value);
+                    if (e.target.value.trim() !== "") {
+                      setAmount("1");
+                    }
+                  }}
+                  className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50 font-mono"
+                />
+                <span className="text-[10px] text-muted-foreground block mt-1">Leave empty for auto-generated keys. Custom keys force amount to 1.</span>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Duration (Days)</label>
@@ -568,12 +589,17 @@ function GenerateLicenseModal({ isOpen, onClose, onGenerate, loading, apps }: { 
                 </div>
                 <div>
                   <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Amount</label>
-                  <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
-                    className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50" />
+                  <input
+                    type="number"
+                    value={customKey.trim() !== "" ? "1" : amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    disabled={customKey.trim() !== ""}
+                    className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
                 </div>
               </div>
 
-              <div>
+              <div className={customKey.trim() !== "" ? "opacity-40 pointer-events-none transition-opacity" : "transition-opacity"}>
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Key Style</label>
                 <div className="mt-2 grid grid-cols-3 gap-2">
                   <button type="button" onClick={() => setStyle("ALPHANUMERIC")} className={`flex flex-col items-center gap-1 rounded-xl border py-4 px-2 transition-all ${style === "ALPHANUMERIC" ? "border-primary bg-primary/10 text-primary" : "border-border/60 bg-card/40 text-muted-foreground hover:border-primary/30"}`}>
@@ -608,7 +634,7 @@ function GenerateLicenseModal({ isOpen, onClose, onGenerate, loading, apps }: { 
                 </button>
               </div>
 
-              <Btn className="w-full justify-center py-6 mt-4" onClick={() => onGenerate({ app_id: parseInt(appId), duration_days: parseInt(duration), amount: parseInt(amount), key_style: style, is_super_license: isSuperLicense })} disabled={loading || !appId}>
+              <Btn className="w-full justify-center py-6 mt-4" onClick={() => onGenerate({ app_id: parseInt(appId), duration_days: parseInt(duration), amount: customKey.trim() !== "" ? 1 : parseInt(amount), key_style: style, is_super_license: isSuperLicense, custom_key: customKey.trim() || undefined })} disabled={loading || !appId}>
                 {loading ? <Loader2 size={16} className="animate-spin" /> : "Generate Now"}
               </Btn>
             </div>
