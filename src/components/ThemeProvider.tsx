@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
+import { applyThemeVariables } from "@/lib/themeColors";
 
 type ThemeColor = {
   name: string;
@@ -10,10 +11,10 @@ type ThemeColor = {
 
 const themes: Record<string, ThemeColor> = {
   emerald: {
-    name: "Emerald",
-    primary: "oklch(0.78 0.19 158)",
-    accent: "oklch(0.62 0.18 170)",
-    neon: "oklch(0.85 0.22 155)",
+    name: "Emerald Crystal",
+    primary: "#00C878",
+    accent: "#00E08A",
+    neon: "#38F5B7",
   },
   sky: {
     name: "Sky",
@@ -129,12 +130,25 @@ const themes: Record<string, ThemeColor> = {
     accent: "oklch(0.45 0.08 70)",
     neon: "oklch(0.7 0.12 55)",
   },
+  emergite: {
+    name: "Emerite",
+    primary: "rgb(0 212 123)",
+    accent: "rgb(0 180 100)",
+    neon: "rgb(50 255 150)",
+  },
+  emergiteBlue: {
+    name: "Emerite Blue",
+    primary: "rgb(3 112 255)",
+    accent: "rgb(0 90 220)",
+    neon: "rgb(50 150 255)",
+  },
 };
 
 type ThemeContextType = {
   theme: string;
   setTheme: (name: string) => void;
   themes: typeof themes;
+  refreshGlobalTheme: () => Promise<void>;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -147,57 +161,48 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return "emerald";
   });
 
-  const setTheme = (name: string) => {
+  const setTheme = useCallback((name: string) => {
     if (themes[name]) {
       setThemeState(name);
       localStorage.setItem("app-theme", name);
     }
-  };
+  }, []);
+
+  const refreshGlobalTheme = useCallback(async () => {
+    try {
+      const data = await api.theme.getGlobal();
+      if (data?.theme && themes[data.theme]) {
+        setThemeState(data.theme);
+        localStorage.setItem("app-theme", data.theme);
+      }
+    } catch (err) {
+      console.error("Failed to fetch global theme:", err);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchGlobalTheme = async () => {
-      try {
-        const data = await api.theme.getGlobal();
-        if (data && data.theme && themes[data.theme]) {
-          setThemeState(data.theme);
-          localStorage.setItem("app-theme", data.theme);
-        }
-      } catch (err) {
-        console.error("Failed to fetch global theme:", err);
-      }
+    refreshGlobalTheme();
+  }, [refreshGlobalTheme]);
+
+  // Re-sync when user returns to tab (picks up admin theme changes)
+  useEffect(() => {
+    const onFocus = () => refreshGlobalTheme();
+    window.addEventListener("focus", onFocus);
+    const interval = setInterval(refreshGlobalTheme, 60_000);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      clearInterval(interval);
     };
-    fetchGlobalTheme();
-  }, []);
+  }, [refreshGlobalTheme]);
 
   useEffect(() => {
     const selectedTheme = themes[theme];
     if (!selectedTheme) return;
-
-    const root = document.documentElement;
-    root.style.setProperty("--primary", selectedTheme.primary);
-    root.style.setProperty("--accent", selectedTheme.accent);
-    root.style.setProperty("--neon", selectedTheme.neon);
-    root.style.setProperty("--ring", selectedTheme.primary);
-    root.style.setProperty("--success", selectedTheme.primary);
-    
-    // New granular variables for background and borders
-    root.style.setProperty("--primary-glow", selectedTheme.primary.replace(")", " / 0.12)"));
-    root.style.setProperty("--accent-glow", selectedTheme.accent.replace(")", " / 0.12)"));
-    root.style.setProperty("--primary-border", selectedTheme.primary.replace(")", " / 0.1)"));
-    
-    // Update gradients and shadows that depend on primary
-    root.style.setProperty("--gradient-brand", `linear-gradient(135deg, ${selectedTheme.primary}, ${selectedTheme.accent})`);
-    root.style.setProperty("--shadow-neon", `0 0 32px ${selectedTheme.primary.replace(")", " / 0.45)")}, 0 0 64px ${selectedTheme.primary.replace(")", " / 0.18)")}`);
-    root.style.setProperty("--shadow-glow", `0 8px 40px -10px ${selectedTheme.primary.replace(")", " / 0.55)")}`);
-    
-    // Also update chart colors
-    root.style.setProperty("--chart-1", selectedTheme.primary);
-    root.style.setProperty("--chart-2", selectedTheme.accent);
-    
+    applyThemeVariables(document.documentElement, selectedTheme);
   }, [theme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, themes }}>
+    <ThemeContext.Provider value={{ theme, setTheme, themes, refreshGlobalTheme }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -208,3 +213,5 @@ export const useTheme = () => {
   if (!context) throw new Error("useTheme must be used within a ThemeProvider");
   return context;
 };
+
+export { themes };

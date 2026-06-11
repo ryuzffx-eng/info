@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { 
   LayoutDashboard, Key, ScrollText, Users, Package, Settings, MessageCircle, 
-  BarChart3, Shield, UsersRound, AppWindow, FolderOpen, Store, ChevronUp 
+  BarChart3, Shield, UsersRound, AppWindow, FolderOpen, Store, ChevronUp, Monitor
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -39,6 +39,7 @@ const adminCategories = [
       { to: "/admin/resellers", label: "Resellers", icon: UsersRound },
       { to: "/admin/licenses", label: "Licenses", icon: Key },
       { to: "/admin/bypass", label: "Bypass", icon: Shield },
+      { to: "/admin/telemetry", label: "Telemetry", icon: Monitor },
     ],
   },
   {
@@ -56,8 +57,6 @@ const adminCategories = [
     icon: Settings,
     items: [
       { to: "/admin/settings", label: "Settings", icon: Settings },
-      { to: "/docs", label: "Docs", icon: ScrollText },
-      { to: "/support", label: "Support", icon: MessageCircle },
     ],
   },
 ];
@@ -74,7 +73,7 @@ export function DashboardBottomNav({ variant }: { variant: "admin" | "reseller" 
   if (variant !== "admin") {
     const links = variant === "reseller" ? resellerLinks : userLinks;
     return (
-      <nav className="fixed bottom-0 left-0 right-0 z-50 block border-t border-white/[0.03] bg-black/80 px-2 pb-[calc(0.8rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-3xl md:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
+      <nav className="glass-nav fixed bottom-0 left-0 right-0 z-50 block border-t border-white/10 px-2 pb-[calc(0.8rem+env(safe-area-inset-bottom))] pt-3 md:hidden shadow-[var(--shadow-glass)]">
         <div className="mx-auto flex max-w-lg items-center justify-around">
           {links.map((l) => {
             const active = loc.pathname === l.to;
@@ -112,13 +111,13 @@ export function DashboardBottomNav({ variant }: { variant: "admin" | "reseller" 
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }}
               onClick={() => setActiveCategory(null)}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" 
+              className="fixed inset-0 z-40 glass-overlay backdrop-blur-sm md:hidden" 
             />
             <motion.div
               initial={{ opacity: 0, y: 15, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.98 }}
-              className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-50 overflow-hidden rounded-lg border border-white/[0.08] bg-black/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-3xl md:hidden"
+              className="glass-dropdown fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-50 overflow-hidden rounded-xl p-2 md:hidden"
             >
               <div className="grid gap-0.5">
                 <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 border-b border-white/[0.03] mb-1">
@@ -132,7 +131,7 @@ export function DashboardBottomNav({ variant }: { variant: "admin" | "reseller" 
                       to={item.to}
                       className={`group flex items-center gap-3 rounded-md px-3 py-2.5 transition-all ${active ? "bg-white/[0.04]" : "hover:bg-white/[0.04]"}`}
                     >
-                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md border transition-all ${active ? "border-primary/30 bg-primary/10 text-primary" : "border-white/5 bg-zinc-900/80 text-zinc-500"}`}>
+                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md border transition-all ${active ? "border-primary/30 bg-primary/10 text-primary" : "border-white/10 bg-white/[0.06] text-zinc-500"}`}>
                         <item.icon size={14} />
                       </div>
                       <div className={`text-[13px] font-semibold transition-colors ${active ? "text-white" : "text-zinc-300"}`}>
@@ -147,7 +146,7 @@ export function DashboardBottomNav({ variant }: { variant: "admin" | "reseller" 
         )}
       </AnimatePresence>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 block border-t border-white/[0.03] bg-black/90 px-2 pb-[calc(0.8rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur-3xl md:hidden shadow-[0_-15px_50px_rgba(0,0,0,0.9)]">
+      <nav className="glass-nav fixed bottom-0 left-0 right-0 z-50 block border-t border-white/10 px-2 pb-[calc(0.8rem+env(safe-area-inset-bottom))] pt-3 md:hidden shadow-[var(--shadow-glass)]">
         <div className="mx-auto flex max-w-lg items-center justify-around">
           {adminCategories.map((cat) => {
             const isCategoryActive = cat.items.some(item => loc.pathname === item.to);

@@ -46,7 +46,7 @@ function ThemePicker() {
           >
             <div className="absolute inset-0 transition-transform group-hover:scale-110" style={{ background: t.primary }} />
             {theme === id && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+              <div className="absolute inset-0 flex items-center justify-center bg-white/[0.04]">
                 <div className="h-2 w-2 rounded-full bg-white shadow-[0_0_8px_white]" />
               </div>
             )}
@@ -56,7 +56,7 @@ function ThemePicker() {
       
       <div className="mt-4 p-3 rounded-lg bg-white/[0.03] border border-white/[0.05]">
         <p className="text-[10px] text-zinc-400 font-medium leading-relaxed">
-          Selecting a palette will update the primary accent colors, gradients, and shadows across the entire platform in real-time.
+          Selecting a palette updates ribbons, glow, buttons, cards, and accents across the entire site in real time.
         </p>
       </div>
     </Card>

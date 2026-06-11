@@ -17,7 +17,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
 export function StatCard({ label, value, delta, icon: Icon, accent = "primary" }: { label: string; value: string; delta?: string; icon: any; accent?: "primary" | "accent" | "warning" }) {
   const colorMap = { primary: "text-primary bg-primary/10 ring-primary/20", accent: "text-accent bg-accent/10 ring-accent/20", warning: "text-yellow-400 bg-yellow-500/10 ring-yellow-500/20" };
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/40 p-5 backdrop-blur-xl transition-all hover:border-primary/40 hover:shadow-[var(--shadow-glow)]">
+    <div className="group relative overflow-hidden glass-card p-5 transition-all hover:border-primary/40 hover:shadow-[var(--shadow-glow)]">
       <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary/10 blur-2xl opacity-0 transition-opacity group-hover:opacity-100" />
       <div className="relative flex items-start justify-between">
         <div>
@@ -32,7 +32,7 @@ export function StatCard({ label, value, delta, icon: Icon, accent = "primary" }
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-border/60 bg-card/40 p-6 backdrop-blur-xl ${className}`}>{children}</div>;
+  return <div className={`glass-card rounded-2xl p-6 ${className}`}>{children}</div>;
 }
 
 export function Badge({ children, tone = "primary", className = "" }: { children: ReactNode; tone?: "primary" | "warning" | "danger" | "muted" | "success"; className?: string }) {
@@ -132,7 +132,7 @@ export function CustomSelect({
             animate={{ opacity: 1, y: 4, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute left-0 z-[100] mt-1 w-full min-w-[160px] rounded-xl border border-border/60 bg-[#0c0a12]/95 p-1 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-hidden"
+            className="glass-dropdown absolute left-0 z-[100] mt-1 w-full min-w-[160px] rounded-xl p-1 overflow-hidden"
           >
             <div className="max-h-60 overflow-y-auto scrollbar-thin">
               {parsedOptions.map(opt => {

@@ -81,7 +81,17 @@ export const api = {
     createReseller: (data: any) => apiFetch("/admin/resellers", { method: "POST", body: JSON.stringify(data) }),
     getStats: () => apiFetch("/admin/stats"),
     getUsers: () => apiFetch("/admin/users"),
-    getLicenses: () => apiFetch("/admin/licenses"),
+    getLicenses: (params?: { page?: number; limit?: number; search?: string; status?: string; app_id?: number }) => {
+      const query = new URLSearchParams();
+      if (params) {
+        if (params.page !== undefined) query.append("page", params.page.toString());
+        if (params.limit !== undefined) query.append("limit", params.limit.toString());
+        if (params.search !== undefined) query.append("search", params.search);
+        if (params.status !== undefined) query.append("status", params.status);
+        if (params.app_id !== undefined) query.append("app_id", params.app_id.toString());
+      }
+      return apiFetch(`/admin/licenses?${query.toString()}`);
+    },
     deleteLicense: (id: number) => apiFetch(`/admin/licenses/${id}`, { method: "DELETE" }),
     resetLicenseHwid: (id: number) => apiFetch(`/admin/licenses/${id}/reset-hwid`, { method: "PATCH" }),
     getLogs: () => apiFetch("/admin/logs"),
@@ -113,12 +123,35 @@ export const api = {
     deleteUser: (id: number) => apiFetch(`/admin/users/${id}`, { method: "DELETE" }),
     getSettings: () => apiFetch("/admin/settings"),
     updateSettings: (settings: Record<string, string>) => apiFetch("/admin/settings", { method: "POST", body: JSON.stringify({ settings }) }),
+    getTelemetry: (params?: { page?: number; limit?: number; search?: string }) => {
+      const query = new URLSearchParams();
+      if (params) {
+        if (params.page !== undefined) query.append("page", params.page.toString());
+        if (params.limit !== undefined) query.append("limit", params.limit.toString());
+        if (params.search !== undefined) query.append("search", params.search);
+      }
+      return apiFetch(`/admin/telemetry?${query.toString()}`);
+    },
+    deleteTelemetry: (id: number) => apiFetch(`/admin/telemetry/${id}`, { method: "DELETE" }),
   },
   reseller: {
     generateLicenses: (data: any) => apiFetch("/reseller/generate-licenses", { method: "POST", body: JSON.stringify(data) }),
-    getMyLicenses: () => apiFetch("/reseller/my-licenses"),
+    getMyLicenses: (params?: { page?: number; limit?: number; search?: string; status?: string; app_id?: number }) => {
+      const query = new URLSearchParams();
+      if (params) {
+        if (params.page !== undefined) query.append("page", params.page.toString());
+        if (params.limit !== undefined) query.append("limit", params.limit.toString());
+        if (params.search !== undefined) query.append("search", params.search);
+        if (params.status !== undefined) query.append("status", params.status);
+        if (params.app_id !== undefined) query.append("app_id", params.app_id.toString());
+      }
+      return apiFetch(`/reseller/my-licenses?${query.toString()}`);
+    },
     getProfile: () => apiFetch("/reseller/profile"),
     getApplications: () => apiFetch("/reseller/applications"),
+    deleteLicense: (id: number) => apiFetch(`/reseller/licenses/${id}`, { method: "DELETE" }),
+    resetLicenseHwid: (id: number) => apiFetch(`/reseller/licenses/${id}/reset-hwid`, { method: "PATCH" }),
+    togglePauseLicense: (id: number) => apiFetch(`/reseller/licenses/${id}/toggle-pause`, { method: "PATCH" }),
   },
   bypass: {
     getStats: () => apiFetch("/bypass/stats"),

@@ -112,7 +112,7 @@ function ProductsAdmin() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {products?.map((p: any) => (
           <Card key={p.id} className="overflow-hidden !p-0 group">
-            <div className={`relative flex h-40 items-center justify-center bg-gradient-to-br from-emerald-400/20 to-teal-500/10 border-b border-white/5 overflow-hidden`}>
+            <div className={`relative flex h-40 items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10 border-b border-white/5 overflow-hidden`}>
               <div className="absolute inset-0 grid-bg opacity-20" />
               {p.image_url ? (
                 <img src={p.image_url} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
@@ -186,13 +186,13 @@ function ProductsAdmin() {
                     className="w-full rounded-xl border border-border/60 bg-card/40 p-3.5 text-sm outline-none focus:border-primary/50 transition-colors" />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-5">
+                <div className={`grid grid-cols-2 gap-5 ${isCatSelectOpen ? "relative z-30" : ""}`}>
                   <div className="flex flex-col">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground h-4 mb-2">Price ($)</label>
                     <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) })} 
                       className="w-full rounded-xl border border-border/60 bg-card/40 p-3.5 text-sm outline-none focus:border-primary/50 transition-colors h-[46px]" />
                   </div>
-                  <div className="flex flex-col relative">
+                  <div className={`flex flex-col relative ${isCatSelectOpen ? "z-30" : ""}`}>
                     <div className="flex items-center justify-between h-4 mb-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Category</label>
                       {!editProduct && (
@@ -221,7 +221,7 @@ function ProductsAdmin() {
                                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                className="absolute left-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl border border-border/60 bg-card/90 p-1.5 backdrop-blur-xl shadow-2xl"
+                                className="glass-dropdown absolute left-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl p-1.5"
                               >
                                 {categories.map(c => (
                                   <button
@@ -259,7 +259,7 @@ function ProductsAdmin() {
                     <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Product Status</label>
                     <button 
                       onClick={() => setForm({ ...form, status: !form.status })}
-                      className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-sm transition-all h-[46px] ${form.status ? "border-emerald-500/40 bg-emerald-500/5 text-emerald-400" : "border-red-500/40 bg-red-500/5 text-red-400"}`}
+                      className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-sm transition-all h-[46px] ${form.status ? "border-primary/40 bg-primary/5 text-primary" : "border-red-500/40 bg-red-500/5 text-red-400"}`}
                     >
                       <span className="font-bold">{form.status ? "ACTIVE" : "INACTIVE"}</span>
                       <CheckCircle2 size={16} className={form.status ? "opacity-100" : "opacity-20"} />

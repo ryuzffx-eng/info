@@ -19,9 +19,9 @@ function ResellerHome() {
     retry: false
   });
 
-  const { data: licenses, isLoading: isLicensesLoading } = useQuery({
-    queryKey: ["reseller-licenses"],
-    queryFn: () => api.reseller.getMyLicenses(),
+  const { data: licensesData, isLoading: isLicensesLoading } = useQuery({
+    queryKey: ["reseller-licenses-summary"],
+    queryFn: () => api.reseller.getMyLicenses({ limit: 5 }),
     retry: false
   });
 
@@ -33,9 +33,9 @@ function ResellerHome() {
     );
   }
 
-  const recentKeys = licenses?.slice(0, 5) || [];
-  const totalKeys = licenses?.length || 0;
-  const activeCustomers = new Set(licenses?.filter((l: any) => l.hwid).map((l: any) => l.hwid)).size;
+  const recentKeys = licensesData?.items || [];
+  const totalKeys = licensesData?.total || 0;
+  const activeCustomers = licensesData?.active_customers || 0;
   const estimatedRevenue = totalKeys * 15; // Assume $15 average per key
 
   return (
@@ -102,7 +102,7 @@ function ResellerHome() {
                 </div>
                 <div className="mt-1 text-[11px] text-muted-foreground flex items-center justify-between">
                   <span>{k.app_name} • {k.duration} Days</span>
-                  <span className={`capitalize ${k.status === 'active' ? 'text-emerald-400' : 'text-primary'}`}>{k.status}</span>
+                  <span className={`capitalize ${k.status === 'active' ? 'text-primary' : 'text-primary'}`}>{k.status}</span>
                 </div>
               </li>
             ))}

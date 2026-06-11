@@ -4,16 +4,16 @@ import { Github, Twitter, MessageCircle, Send } from "lucide-react";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border/40 bg-card/30 backdrop-blur-xl">
+    <footer className="glass-panel border-t border-white/[0.06]">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
         <div>
           <Logo />
           <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-            The premium marketplace for secure software, licenses, and digital tools.
+            Emerite Store — the premium marketplace for secure software, licenses, and digital tools.
           </p>
           <div className="mt-5 flex gap-2">
             {[Twitter, Github, MessageCircle, Send].map((Icon, i) => (
-              <a key={i} href="#" className="rounded-lg border border-border/60 p-2 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary">
+              <a key={i} href="#" className="glass rounded-lg p-2.5 text-muted-foreground transition-all hover:border-primary/30 hover:text-primary">
                 <Icon size={16} />
               </a>
             ))}

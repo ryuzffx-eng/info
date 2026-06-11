@@ -42,7 +42,7 @@ function CustomerDashboard() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard icon={Key} label="Active Licenses" value={licenses?.length || 0} color="primary" />
           <StatCard icon={Package} label="Total Products" value={new Set(licenses?.map((l: any) => l.software_id)).size} color="accent" />
-          <StatCard icon={ShieldCheck} label="Security Status" value="Secure" color="emerald" />
+          <StatCard icon={ShieldCheck} label="Security Status" value="Secure" color="primary" />
         </div>
 
         <div className="glass-strong rounded-2xl overflow-hidden border-white/5">
@@ -62,7 +62,7 @@ function CustomerDashboard() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium text-emerald-400">Active</div>
+                  <div className="text-sm font-medium text-primary">Active</div>
                   <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1 uppercase tracking-tighter">
                     <Clock size={10} /> {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString() : "Lifetime"}
                   </div>
@@ -80,7 +80,7 @@ function StatCard({ icon: Icon, label, value, color }: any) {
   const colorMap: any = {
     primary: "text-primary bg-primary/10 border-primary/20",
     accent: "text-accent bg-accent/10 border-accent/20",
-    emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+    emerald: "text-primary bg-primary/10 border-primary/20",
   };
 
   return (

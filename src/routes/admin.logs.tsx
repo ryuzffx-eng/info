@@ -306,7 +306,7 @@ function Logs() {
                 onClick={() => setLogsSubTab("license")}
                 className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
                   logsSubTab === "license"
-                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    ? "bg-primary/10 text-primary border border-primary/20"
                     : "text-muted-foreground hover:text-white hover:bg-white/[0.02] border border-transparent"
                 }`}
               >
@@ -373,7 +373,7 @@ function Logs() {
               </div>
               <div className="scrollbar-thin max-h-[500px] overflow-y-auto">
                 <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-[#0c0c0e]/95 text-left text-xs uppercase tracking-wider text-muted-foreground backdrop-blur border-b border-white/[0.02]">
+                  <thead className="sticky top-0 bg-[var(--bg-deep)]/90 backdrop-blur-xl text-left text-xs uppercase tracking-wider text-muted-foreground backdrop-blur border-b border-white/[0.02]">
                     <tr>
                       <th className="px-5 py-3 font-bold">Time</th>
                       <th className="px-3 font-bold">Level</th>
@@ -448,7 +448,7 @@ function Logs() {
                 ) : (
                   <div className="scrollbar-thin max-h-[500px] overflow-y-auto">
                     <table className="w-full text-sm">
-                      <thead className="sticky top-0 bg-[#0c0c0e]/95 text-left text-xs uppercase tracking-wider text-muted-foreground backdrop-blur border-b border-white/[0.02]">
+                      <thead className="sticky top-0 bg-[var(--bg-deep)]/90 backdrop-blur-xl text-left text-xs uppercase tracking-wider text-muted-foreground backdrop-blur border-b border-white/[0.02]">
                         <tr>
                           <th className="px-5 py-3 font-bold">Timestamp</th>
                           <th className="px-3 font-bold">UID</th>
@@ -476,7 +476,7 @@ function Logs() {
                                     className="p-1 rounded text-zinc-600 hover:text-white hover:bg-white/5 transition-all"
                                     title="Copy UID"
                                   >
-                                    {copiedId === `uid-${r.id}` ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                                    {copiedId === `uid-${r.id}` ? <Check size={11} className="text-primary" /> : <Copy size={11} />}
                                   </button>
                                 </div>
                               </td>
@@ -669,7 +669,7 @@ function Logs() {
 
                   <Card>
                     <div className="flex items-center gap-3 border-b border-white/[0.05] pb-4 mb-5">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <ShieldCheck size={18} />
                       </div>
                       <div>
@@ -748,7 +748,7 @@ function Logs() {
               <div className="space-y-6 flex flex-col justify-between">
                 <Card>
                   <div className="flex items-center gap-3 border-b border-white/[0.05] pb-4 mb-5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       <ShieldCheck size={18} />
                     </div>
                     <div>
@@ -820,7 +820,7 @@ function Logs() {
               <div className="space-y-6 flex flex-col justify-between">
                 <Card>
                   <div className="flex items-center gap-3 border-b border-white/[0.05] pb-4 mb-5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       <ShieldCheck size={18} />
                     </div>
                     <div>
@@ -919,7 +919,7 @@ function Logs() {
               <div className="space-y-6 flex flex-col justify-between">
                 <Card>
                   <div className="flex items-center gap-3 border-b border-white/[0.05] pb-4 mb-5">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       <ShieldCheck size={18} />
                     </div>
                     <div>
@@ -989,7 +989,7 @@ function ToggleRow({ label, checked, onChange }: { label: string; checked: boole
       onClick={() => onChange(!checked)}
       className={`flex items-center justify-between rounded-xl border px-4 py-3 backdrop-blur-xl transition-all duration-300 active:scale-95 cursor-pointer ${
         checked
-          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.05)] hover:border-emerald-500/50 hover:bg-emerald-500/15"
+          ? "border-primary/30 bg-primary/10 text-primary shadow-[0_0_15px_var(--primary-glow)] hover:border-primary/50 hover:bg-primary/15"
           : "border-border/60 bg-card/20 text-muted-foreground hover:border-white/20 hover:text-foreground hover:bg-card/40"
       }`}
     >
@@ -997,9 +997,9 @@ function ToggleRow({ label, checked, onChange }: { label: string; checked: boole
       <div className="flex items-center gap-2">
         <div className="relative flex h-2 w-2">
           {checked && (
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
           )}
-          <span className={`relative inline-flex h-2 w-2 rounded-full ${checked ? "bg-emerald-400" : "bg-zinc-600"}`}></span>
+          <span className={`relative inline-flex h-2 w-2 rounded-full ${checked ? "bg-primary" : "bg-zinc-600"}`}></span>
         </div>
         <span className="text-[10px] uppercase font-bold tracking-wider">{checked ? "Active" : "Muted"}</span>
       </div>

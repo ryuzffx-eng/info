@@ -6,23 +6,26 @@ import {
   useRouter,
   HeadContent,
   Scripts,
-  Link,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import appCss from "../styles.css?url";
+import logoPng from "@/assets/logo.png";
 import { LoadingScreen } from "@/components/site/LoadingScreen";
+import { CrystalBackground } from "@/components/crystal/CrystalBackground";
+import { GlassButton } from "@/components/crystal/GlassButton";
+import { GlassCard } from "@/components/crystal/GlassCard";
 
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="glass-strong max-w-md rounded-2xl p-10 text-center">
+      <GlassCard className="max-w-md p-10 text-center" hover={false}>
         <h1 className="text-7xl font-bold neon-text">404</h1>
         <p className="mt-3 text-muted-foreground">This page drifted off the grid.</p>
-        <Link to="/" className="mt-6 inline-flex rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground neon-glow">
+        <GlassButton to="/" className="mt-6" size="md">
           Back home
-        </Link>
-      </div>
+        </GlassButton>
+      </GlassCard>
     </div>
   );
 }
@@ -32,14 +35,16 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="glass-strong max-w-md rounded-2xl p-10 text-center">
+      <GlassCard className="max-w-md p-10 text-center" hover={false}>
         <h1 className="text-2xl font-semibold">Something glitched</h1>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
-        <button
+        <GlassButton
           onClick={() => { router.invalidate(); reset(); }}
-          className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
-        >Try again</button>
-      </div>
+          className="mt-6"
+        >
+          Try again
+        </GlassButton>
+      </GlassCard>
     </div>
   );
 }
@@ -55,7 +60,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Secure software marketplace, licenses, and tools." },
       { property: "og:type", content: "website" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: logoPng, type: "image/png" },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -98,7 +106,14 @@ function RootComponent() {
     <ThemeProvider>
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
         <QueryClientProvider client={queryClient}>
-          {isInitialLoading ? <LoadingScreen /> : <Outlet />}
+          {isInitialLoading ? (
+            <LoadingScreen />
+          ) : (
+            <>
+              <CrystalBackground />
+              <Outlet />
+            </>
+          )}
           <Toaster theme="dark" position="top-right" richColors />
         </QueryClientProvider>
       </GoogleOAuthProvider>

@@ -4,7 +4,7 @@ import {
   User as UserIcon, Eye, X, Mail, Calendar, Shield, Activity,
   CheckCircle2, AlertCircle, Bell, BellOff
 } from "lucide-react";
-import { PageHeader, Card, Badge, Btn, CustomSelect } from "@/components/admin/ui";
+import { PageHeader, Card, Badge, Btn, CustomSelect, ConfirmModal } from "@/components/admin/ui";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -17,6 +17,7 @@ function UsersPage() {
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState("All statuses");
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const queryClient = useQueryClient();
   
   const { data: users, isLoading } = useQuery({
@@ -92,7 +93,7 @@ function UsersPage() {
               }}
               className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl transition-all duration-300 active:scale-95 cursor-pointer ${
                 settings.discord_log_users !== "false"
-                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:border-emerald-500/50 hover:bg-emerald-500/15"
+                  ? "border-primary/30 bg-primary/10 text-primary shadow-[0_0_15px_var(--primary-glow)] hover:border-primary/50 hover:bg-primary/15"
                   : "border-border/60 bg-card/40 text-muted-foreground hover:border-white/20 hover:text-foreground"
               }`}
             >
@@ -100,8 +101,8 @@ function UsersPage() {
                 <>
                   <Bell size={14} className="animate-bounce" />
                   <div className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
                   </div>
                   <span>Discord Logs: Active</span>
                 </>
@@ -181,11 +182,7 @@ function UsersPage() {
                     <div className="flex justify-end gap-2">
                       <button onClick={() => setSelectedUser(u)} className="h-8 w-8 flex items-center justify-center rounded-lg bg-white/5 text-zinc-500 hover:text-primary transition-all border border-white/5"><Eye size={14} /></button>
                       <button 
-                        onClick={() => {
-                          if (confirm("Are you sure?")) {
-                            deleteUser.mutate(u.id);
-                          }
-                        }}
+                        onClick={() => setConfirmDeleteId(u.id)}
                         disabled={deleteUser.isPending}
                         className="h-8 w-8 flex items-center justify-center rounded-lg bg-white/5 text-zinc-500 hover:text-red-500 transition-all border border-white/5"
                       >
@@ -243,11 +240,7 @@ function UsersPage() {
                   <div className="flex items-center gap-3">
                     <button onClick={() => setSelectedUser(u)} className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900/60 text-zinc-400 border border-white/5 active:bg-white/10 transition-all shadow-xl"><Eye size={18} /></button>
                     <button 
-                      onClick={() => {
-                        if (confirm("Delete this user?")) {
-                          deleteUser.mutate(u.id);
-                        }
-                      }}
+                      onClick={() => setConfirmDeleteId(u.id)}
                       disabled={deleteUser.isPending}
                       className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900/60 text-red-500/80 border border-white/5 active:bg-red-500/20 transition-all shadow-xl"
                     >
@@ -272,7 +265,7 @@ function UsersPage() {
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setSelectedUser(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-md" 
+              className="absolute inset-0 glass-overlay backdrop-blur-md" 
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -328,7 +321,7 @@ function UsersPage() {
                   </div>
                   <button 
                     onClick={() => updateUser.mutate({ id: selectedUser.id, data: { is_active: !selectedUser.is_active }})}
-                    className={`flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-bold border transition-all ${selectedUser.is_active ? 'bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20'}`}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-bold border transition-all ${selectedUser.is_active ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20' : 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20'}`}
                   >
                     <Ban size={12} />
                     {selectedUser.is_active ? "ACTIVE" : "BANNED"}
@@ -353,11 +346,7 @@ function UsersPage() {
                   Close Preview
                 </button>
                 <button 
-                  onClick={() => {
-                    if (confirm("Permanently delete this user? This cannot be undone.")) {
-                      deleteUser.mutate(selectedUser.id);
-                    }
-                  }}
+                  onClick={() => setConfirmDeleteId(selectedUser.id)}
                   className="flex items-center justify-center gap-2 rounded-xl bg-red-500/10 px-4 py-2.5 text-xs font-bold text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all"
                 >
                   <Trash2 size={14} />
@@ -367,6 +356,17 @@ function UsersPage() {
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={confirmDeleteId !== null}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={() => {
+          if (confirmDeleteId !== null) deleteUser.mutate(confirmDeleteId);
+          setConfirmDeleteId(null);
+        }}
+        title="Delete User"
+        message="Are you sure you want to permanently delete this user? This action cannot be undone."
+      />
     </div>
   );
 }

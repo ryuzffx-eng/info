@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResellerRouteImport } from './routes/reseller'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as PublicRouteImport } from './routes/_public'
@@ -22,6 +21,7 @@ import { Route as ResellerLogsRouteImport } from './routes/reseller.logs'
 import { Route as ResellerLicensesRouteImport } from './routes/reseller.licenses'
 import { Route as ResellerBypassRouteImport } from './routes/reseller.bypass'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminTelemetryRouteImport } from './routes/admin.telemetry'
 import { Route as AdminStorePagesRouteImport } from './routes/admin.store-pages'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminResellersRouteImport } from './routes/admin.resellers'
@@ -39,11 +39,6 @@ import { Route as PublicMarketplaceRouteImport } from './routes/_public.marketpl
 const ResellerRoute = ResellerRouteImport.update({
   id: '/reseller',
   path: '/reseller',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -98,6 +93,11 @@ const ResellerBypassRoute = ResellerBypassRouteImport.update({
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTelemetryRoute = AdminTelemetryRouteImport.update({
+  id: '/telemetry',
+  path: '/telemetry',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminStorePagesRoute = AdminStorePagesRouteImport.update({
@@ -170,7 +170,6 @@ export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRoute
-  '/login': typeof LoginRoute
   '/reseller': typeof ResellerRouteWithChildren
   '/marketplace': typeof PublicMarketplaceRoute
   '/reviews': typeof PublicReviewsRoute
@@ -185,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/admin/resellers': typeof AdminResellersRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/store-pages': typeof AdminStorePagesRoute
+  '/admin/telemetry': typeof AdminTelemetryRoute
   '/admin/users': typeof AdminUsersRoute
   '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
@@ -195,7 +195,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
-  '/login': typeof LoginRoute
   '/marketplace': typeof PublicMarketplaceRoute
   '/reviews': typeof PublicReviewsRoute
   '/status': typeof PublicStatusRoute
@@ -209,6 +208,7 @@ export interface FileRoutesByTo {
   '/admin/resellers': typeof AdminResellersRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/store-pages': typeof AdminStorePagesRoute
+  '/admin/telemetry': typeof AdminTelemetryRoute
   '/admin/users': typeof AdminUsersRoute
   '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
@@ -223,7 +223,6 @@ export interface FileRoutesById {
   '/_public': typeof PublicRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRoute
-  '/login': typeof LoginRoute
   '/reseller': typeof ResellerRouteWithChildren
   '/_public/marketplace': typeof PublicMarketplaceRoute
   '/_public/reviews': typeof PublicReviewsRoute
@@ -238,6 +237,7 @@ export interface FileRoutesById {
   '/admin/resellers': typeof AdminResellersRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/store-pages': typeof AdminStorePagesRoute
+  '/admin/telemetry': typeof AdminTelemetryRoute
   '/admin/users': typeof AdminUsersRoute
   '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
@@ -253,7 +253,6 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/dashboard'
-    | '/login'
     | '/reseller'
     | '/marketplace'
     | '/reviews'
@@ -268,6 +267,7 @@ export interface FileRouteTypes {
     | '/admin/resellers'
     | '/admin/settings'
     | '/admin/store-pages'
+    | '/admin/telemetry'
     | '/admin/users'
     | '/reseller/bypass'
     | '/reseller/licenses'
@@ -278,7 +278,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/dashboard'
-    | '/login'
     | '/marketplace'
     | '/reviews'
     | '/status'
@@ -292,6 +291,7 @@ export interface FileRouteTypes {
     | '/admin/resellers'
     | '/admin/settings'
     | '/admin/store-pages'
+    | '/admin/telemetry'
     | '/admin/users'
     | '/reseller/bypass'
     | '/reseller/licenses'
@@ -305,7 +305,6 @@ export interface FileRouteTypes {
     | '/_public'
     | '/admin'
     | '/dashboard'
-    | '/login'
     | '/reseller'
     | '/_public/marketplace'
     | '/_public/reviews'
@@ -320,6 +319,7 @@ export interface FileRouteTypes {
     | '/admin/resellers'
     | '/admin/settings'
     | '/admin/store-pages'
+    | '/admin/telemetry'
     | '/admin/users'
     | '/reseller/bypass'
     | '/reseller/licenses'
@@ -334,7 +334,6 @@ export interface RootRouteChildren {
   PublicRoute: typeof PublicRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   DashboardRoute: typeof DashboardRoute
-  LoginRoute: typeof LoginRoute
   ResellerRoute: typeof ResellerRouteWithChildren
 }
 
@@ -345,13 +344,6 @@ declare module '@tanstack/react-router' {
       path: '/reseller'
       fullPath: '/reseller'
       preLoaderRoute: typeof ResellerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -429,6 +421,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/telemetry': {
+      id: '/admin/telemetry'
+      path: '/telemetry'
+      fullPath: '/admin/telemetry'
+      preLoaderRoute: typeof AdminTelemetryRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/store-pages': {
@@ -553,6 +552,7 @@ interface AdminRouteChildren {
   AdminResellersRoute: typeof AdminResellersRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminStorePagesRoute: typeof AdminStorePagesRoute
+  AdminTelemetryRoute: typeof AdminTelemetryRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -568,6 +568,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminResellersRoute: AdminResellersRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminStorePagesRoute: AdminStorePagesRoute,
+  AdminTelemetryRoute: AdminTelemetryRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -598,7 +599,6 @@ const rootRouteChildren: RootRouteChildren = {
   PublicRoute: PublicRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   DashboardRoute: DashboardRoute,
-  LoginRoute: LoginRoute,
   ResellerRoute: ResellerRouteWithChildren,
 }
 export const routeTree = rootRouteImport

@@ -4,7 +4,7 @@ import { PageHeader, Card, Badge, Btn, ConfirmModal, CustomSelect } from "@/comp
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type BypassSearch = {
@@ -43,13 +43,29 @@ function ResellerBypass() {
   const [isPurgeOpen, setIsPurgeOpen] = useState(false);
   const [selectedWl, setSelectedWl] = useState<any>(null);
   const [extendDuration, setExtendDuration] = useState("30d");
+  const [confirmRemoveUid, setConfirmRemoveUid] = useState<string | null>(null);
   
   // Search / Filters
+  const [searchVal, setSearchVal] = useState("");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setSearch(searchVal);
+    }, 150);
+    return () => clearTimeout(handler);
+  }, [searchVal]);
+
   const [regionFilter, setRegionFilter] = useState("all");
   const [isRegionSelectOpen, setIsRegionSelectOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [isStatusSelectOpen, setIsStatusSelectOpen] = useState(false);
+
+  // Reset page when filters or tab change
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, search, regionFilter, statusFilter]);
 
   const REGIONS = ["GLOBAL", "ME", "IND", "ID", "VN", "TH", "BD", "PK", "TW", "EU", "CIS", "NA", "SAC", "BR"];
 
@@ -96,6 +112,7 @@ function ResellerBypass() {
   const { data: logs, isLoading: logsLoading, refetch: refetchLogs } = useQuery({
     queryKey: ["bypass-logs"],
     queryFn: () => api.bypass.getLogs(undefined, 100),
+    refetchInterval: activeTab === "logs" ? 5000 : false,
   });
 
   // Mutations
@@ -188,27 +205,51 @@ function ResellerBypass() {
   };
 
   // Filter whitelist
-  const filteredWhitelist = whitelist?.filter((wl: any) => {
-    const matchesSearch = wl.uid.includes(search) || (wl.name || "").toLowerCase().includes(search.toLowerCase());
-    const matchesRegion = regionFilter === "all" || wl.region === regionFilter;
-    return matchesSearch && matchesRegion;
-  });
+  const filteredWhitelist = useMemo(() => {
+    return whitelist?.filter((wl: any) => {
+      const matchesSearch = wl.uid.includes(search) || (wl.name || "").toLowerCase().includes(search.toLowerCase());
+      const matchesRegion = regionFilter === "all" || wl.region === regionFilter;
+      return matchesSearch && matchesRegion;
+    }) || [];
+  }, [whitelist, search, regionFilter]);
 
   // Filter blacklist
-  const filteredBlacklist = blacklist?.filter((bl: any) => {
-    return bl.uid.includes(search) || (bl.reason || "").toLowerCase().includes(search.toLowerCase());
-  });
+  const filteredBlacklist = useMemo(() => {
+    return blacklist?.filter((bl: any) => {
+      return bl.uid.includes(search) || (bl.reason || "").toLowerCase().includes(search.toLowerCase());
+    }) || [];
+  }, [blacklist, search]);
 
   // Filter logs
-  const filteredLogs = logs?.filter((log: any) => {
-    const matchesSearch = log.uid.includes(search) || 
-                          (log.ip || "").includes(search) || 
-                          (log.country || "").toLowerCase().includes(search.toLowerCase()) || 
-                          (log.city || "").toLowerCase().includes(search.toLowerCase());
-    const matchesRegion = regionFilter === "all" || log.region === regionFilter;
-    const matchesStatus = statusFilter === "all" || log.status === statusFilter;
-    return matchesSearch && matchesRegion && matchesStatus;
-  });
+  const filteredLogs = useMemo(() => {
+    return logs?.filter((log: any) => {
+      const matchesSearch = log.uid.includes(search) || 
+                            (log.ip || "").includes(search) || 
+                            (log.country || "").toLowerCase().includes(search.toLowerCase()) || 
+                            (log.city || "").toLowerCase().includes(search.toLowerCase());
+      const matchesRegion = regionFilter === "all" || log.region === regionFilter;
+      const matchesStatus = statusFilter === "all" || log.status === statusFilter;
+      return matchesSearch && matchesRegion && matchesStatus;
+    }) || [];
+  }, [logs, search, regionFilter, statusFilter]);
+
+  // Pagination
+  const itemsPerPage = 15;
+
+  const totalWlPages = Math.ceil(filteredWhitelist.length / itemsPerPage);
+  const paginatedWhitelist = useMemo(() => {
+    return filteredWhitelist.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  }, [filteredWhitelist, page]);
+
+  const totalBlPages = Math.ceil(filteredBlacklist.length / itemsPerPage);
+  const paginatedBlacklist = useMemo(() => {
+    return filteredBlacklist.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  }, [filteredBlacklist, page]);
+
+  const totalLogsPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const paginatedLogs = useMemo(() => {
+    return filteredLogs.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  }, [filteredLogs, page]);
 
   // Format time helpers
   const formatTime = (ts: number) => {
@@ -258,7 +299,7 @@ function ResellerBypass() {
               placeholder="Enter UID..." 
               value={checkInput}
               onChange={(e) => setCheckInput(e.target.value)}
-              className="flex-1 rounded-xl border border-border/60 bg-black/40 px-4 py-2.5 text-sm outline-none focus:border-primary/50 text-white font-mono"
+              className="flex-1 rounded-xl border border-border/60 glass-panel px-4 py-2.5 text-sm outline-none focus:border-primary/50 text-white font-mono"
             />
             <Btn type="submit" className="px-6" disabled={isChecking}>
               {isChecking ? <Loader2 size={14} className="animate-spin" /> : "Check UID"}
@@ -267,7 +308,7 @@ function ResellerBypass() {
 
           {/* Check Result display */}
           {checkResult && (
-            <div className="mt-4 p-4 rounded-xl border border-white/5 bg-black/25 text-xs space-y-2">
+            <div className="mt-4 p-4 rounded-xl border border-white/5 bg-white/[0.04] text-xs space-y-2">
               <div className="flex justify-between items-center pb-2 border-b border-white/5">
                 <span className="font-semibold text-muted-foreground">UID:</span>
                 <span className="font-mono font-bold text-white">{checkResult.uid}</span>
@@ -351,13 +392,13 @@ function ResellerBypass() {
           </div>
 
           {/* Search and filters row */}
-          <div className="flex flex-wrap md:flex-nowrap gap-4">
+          <div className={`flex flex-wrap md:flex-nowrap gap-4 relative ${isRegionSelectOpen || isStatusSelectOpen ? "z-30" : "z-20"}`}>
             <div className="relative flex-1">
               <input 
                 type="text" 
                 placeholder={activeTab === "logs" ? "Search by UID, IP or location..." : `Search ${activeTab}...`} 
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchVal}
+                onChange={(e) => setSearchVal(e.target.value)}
                 className="w-full rounded-xl border border-border/60 bg-card/40 p-3.5 pl-10 text-sm outline-none focus:border-primary/50 text-white"
               />
               <div className="absolute left-3.5 top-4 text-muted-foreground/50">
@@ -366,7 +407,7 @@ function ResellerBypass() {
             </div>
 
             {(activeTab === "whitelist" || activeTab === "logs") && (
-              <div className="relative min-w-[160px]">
+              <div className={`relative min-w-[160px] ${isRegionSelectOpen ? "z-30" : "z-10"}`}>
                 <button
                   onClick={() => setIsRegionSelectOpen(!isRegionSelectOpen)}
                   className="flex w-full items-center justify-between rounded-xl border border-border/60 bg-card/40 p-3.5 text-sm transition-all hover:bg-card/60 text-white"
@@ -382,7 +423,7 @@ function ResellerBypass() {
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl border border-white/5 bg-card/90 p-1.5 backdrop-blur-xl shadow-2xl"
+                        className="glass-dropdown absolute right-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl p-1.5"
                       >
                         <button
                           onClick={() => { setRegionFilter("all"); setIsRegionSelectOpen(false); }}
@@ -407,7 +448,7 @@ function ResellerBypass() {
             )}
 
             {activeTab === "logs" && (
-              <div className="relative min-w-[160px]">
+              <div className={`relative min-w-[160px] ${isStatusSelectOpen ? "z-30" : "z-10"}`}>
                 <button
                   onClick={() => setIsStatusSelectOpen(!isStatusSelectOpen)}
                   className="flex w-full items-center justify-between rounded-xl border border-border/60 bg-card/40 p-3.5 text-sm transition-all hover:bg-card/60 text-white"
@@ -423,7 +464,7 @@ function ResellerBypass() {
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl border border-white/5 bg-card/90 p-1.5 backdrop-blur-xl shadow-2xl"
+                        className="glass-dropdown absolute right-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl p-1.5"
                       >
                         {["all", "allowed", "blocked", "expired", "denied", "not_found"].map((st) => (
                           <button
@@ -465,12 +506,14 @@ function ResellerBypass() {
                           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                         </td>
                       </tr>
-                    ) : filteredWhitelist && filteredWhitelist.length > 0 ? (
-                      filteredWhitelist.map((item: any, idx: number) => (
-                        <tr key={item.uid} className="group hover:bg-primary/[0.02] transition-colors">
-                          <td className="py-6 px-6 font-mono text-xs text-muted-foreground">
-                            {(idx + 1).toString().padStart(2, '0')}
-                          </td>
+                    ) : paginatedWhitelist && paginatedWhitelist.length > 0 ? (
+                      paginatedWhitelist.map((item: any, idx: number) => {
+                        const globalIdx = (page - 1) * itemsPerPage + idx;
+                        return (
+                          <tr key={item.uid} className="group hover:bg-primary/[0.02] transition-colors">
+                            <td className="py-6 px-6 font-mono text-xs text-muted-foreground">
+                              {(globalIdx + 1).toString().padStart(2, '0')}
+                            </td>
                           <td className="px-6">
                             <div className="flex items-center gap-2 group/key">
                               <div className="bg-background/60 border border-border/40 rounded-lg px-4 py-2.5 font-mono text-xs tracking-wider text-foreground/90 shadow-inner group-hover/key:border-primary/30 transition-all">
@@ -484,7 +527,7 @@ function ResellerBypass() {
                           </td>
                           <td className="px-6">
                             <div className="flex items-center gap-3">
-                              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold text-sm border border-primary/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold text-sm border border-primary/20 shadow-[0_0_15px_var(--primary-glow)]">
                                 {(item.region || "?").charAt(0).toUpperCase()}
                               </div>
                               <div>
@@ -495,7 +538,7 @@ function ResellerBypass() {
                           </td>
                           <td className="px-6">
                             <div className={`inline-flex items-center justify-center px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${
-                              item.is_valid ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]" :
+                              item.is_valid ? "bg-primary/10 text-primary border-primary/20 shadow-[0_0_15px_var(--primary-glow)]" :
                               "bg-red-500/10 text-red-400 border-red-500/20"
                             }`}>
                               {item.is_valid ? "ACTIVE" : "EXPIRED"}
@@ -515,18 +558,15 @@ function ResellerBypass() {
                               <button onClick={() => addBlacklistMutation.mutate({ uid: item.uid, reason: "Banned by Reseller" })} className="text-yellow-500/80 hover:text-yellow-400 transition-colors" title="Ban UID">
                                 <Ban size={18} />
                               </button>
-                              <button onClick={() => {
-                                if (confirm(`Remove UID ${item.uid} from whitelist?`)) {
-                                  removeWhitelistMutation.mutate(item.uid);
-                                }
-                              }} className="text-red-500/80 hover:text-red-400 transition-colors" title="Delete Whitelist">
+                              <button onClick={() => setConfirmRemoveUid(item.uid)} className="text-red-500/80 hover:text-red-400 transition-colors" title="Delete Whitelist">
                                 <Trash2 size={18} />
                               </button>
                             </div>
                           </td>
                         </tr>
-                      ))
-                    ) : (
+                      );
+                    })
+                  ) : (
                       <tr>
                         <td colSpan={6} className="py-20 text-center text-muted-foreground italic">
                           No whitelisted UIDs found.
@@ -543,21 +583,23 @@ function ResellerBypass() {
                   <div className="py-20 text-center">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                   </div>
-                ) : filteredWhitelist && filteredWhitelist.length > 0 ? (
-                  filteredWhitelist.map((item: any, idx: number) => (
-                    <div key={item.uid} className="p-5 space-y-4 hover:bg-white/[0.01] transition-colors relative">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-muted-foreground">
-                            {(idx + 1).toString().padStart(2, '0')}
-                          </span>
+                ) : paginatedWhitelist && paginatedWhitelist.length > 0 ? (
+                  paginatedWhitelist.map((item: any, idx: number) => {
+                    const globalIdx = (page - 1) * itemsPerPage + idx;
+                    return (
+                      <div key={item.uid} className="p-5 space-y-4 hover:bg-white/[0.01] transition-colors relative">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono text-muted-foreground">
+                              {(globalIdx + 1).toString().padStart(2, '0')}
+                            </span>
                           <span className="font-mono text-sm font-bold text-white tracking-wider">{item.uid}</span>
                           <button onClick={() => { navigator.clipboard.writeText(item.uid); toast.success("UID copied"); }} className="text-muted-foreground/40 hover:text-primary transition-all">
                             <Copy size={12} />
                           </button>
                         </div>
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                          item.is_valid ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                          item.is_valid ? "bg-primary/10 text-primary border-primary/20" :
                           "bg-red-500/10 text-red-400 border-red-500/20"
                         }`}>
                           {item.is_valid ? "ACTIVE" : "EXPIRED"}
@@ -587,22 +629,52 @@ function ResellerBypass() {
                         <button onClick={() => addBlacklistMutation.mutate({ uid: item.uid, reason: "Banned by Reseller" })} className="text-yellow-500/80 hover:text-yellow-400 transition-all p-1" title="Ban UID">
                           <Ban size={16} />
                         </button>
-                        <button onClick={() => {
-                          if (confirm(`Remove UID ${item.uid} from whitelist?`)) {
-                            removeWhitelistMutation.mutate(item.uid);
-                          }
-                        }} className="text-red-500 hover:text-red-450 transition-all p-1" title="Delete Whitelist">
+                        <button onClick={() => setConfirmRemoveUid(item.uid)} className="text-red-500 hover:text-red-450 transition-all p-1" title="Delete Whitelist">
                           <Trash2 size={16} />
                         </button>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="py-12 text-center text-muted-foreground italic text-sm">
                     No whitelisted UIDs found.
                   </div>
                 )}
               </div>
+
+              {totalWlPages > 1 && (
+                <div className="p-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 bg-card/10">
+                  <div className="text-xs text-muted-foreground font-medium">
+                    Showing page <span className="font-bold text-white">{page}</span> of{" "}
+                    <span className="font-bold text-white">{totalWlPages}</span> ({filteredWhitelist.length} total)
+                  </div>
+                  <div className="flex gap-2">
+                    <Btn
+                      variant="outline"
+                      size="sm"
+                      disabled={page === 1}
+                      onClick={() => {
+                        setPage(p => Math.max(1, p - 1));
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                    >
+                      Previous
+                    </Btn>
+                    <Btn
+                      variant="outline"
+                      size="sm"
+                      disabled={page === totalWlPages}
+                      onClick={() => {
+                        setPage(p => Math.min(totalWlPages, p + 1));
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                    >
+                      Next
+                    </Btn>
+                  </div>
+                </div>
+              )}
             </Card>
           )}
 
@@ -629,12 +701,14 @@ function ResellerBypass() {
                           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                         </td>
                       </tr>
-                    ) : filteredBlacklist && filteredBlacklist.length > 0 ? (
-                      filteredBlacklist.map((item: any, idx: number) => (
-                        <tr key={item.uid} className="group hover:bg-primary/[0.02] transition-colors">
-                          <td className="py-6 px-6 font-mono text-xs text-muted-foreground">
-                            {(idx + 1).toString().padStart(2, '0')}
-                          </td>
+                    ) : paginatedBlacklist && paginatedBlacklist.length > 0 ? (
+                      paginatedBlacklist.map((item: any, idx: number) => {
+                        const globalIdx = (page - 1) * itemsPerPage + idx;
+                        return (
+                          <tr key={item.uid} className="group hover:bg-primary/[0.02] transition-colors">
+                            <td className="py-6 px-6 font-mono text-xs text-muted-foreground">
+                              {(globalIdx + 1).toString().padStart(2, '0')}
+                            </td>
                           <td className="px-6">
                             <div className="flex items-center gap-2 group/key">
                               <div className="bg-background/60 border border-border/40 rounded-lg px-4 py-2.5 font-mono text-xs tracking-wider text-red-400/90 shadow-inner transition-all">
@@ -665,13 +739,14 @@ function ResellerBypass() {
                             {formatTime(item.added_at)}
                           </td>
                           <td className="px-6 text-right">
-                            <Btn variant="outline" size="sm" className="text-emerald-450 border-emerald-500/25 hover:bg-emerald-500/10 hover:border-emerald-550" onClick={() => removeBlacklistMutation.mutate(item.uid)}>
+                            <Btn variant="outline" size="sm" className="text-primary border-primary/25 hover:bg-primary/10 hover:border-primary" onClick={() => removeBlacklistMutation.mutate(item.uid)}>
                               Unban UID
                             </Btn>
                           </td>
                         </tr>
-                      ))
-                    ) : (
+                      );
+                    })
+                  ) : (
                       <tr>
                         <td colSpan={6} className="py-20 text-center text-muted-foreground italic">
                           No blacklisted UIDs found.
@@ -688,14 +763,16 @@ function ResellerBypass() {
                   <div className="py-20 text-center">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                   </div>
-                ) : filteredBlacklist && filteredBlacklist.length > 0 ? (
-                  filteredBlacklist.map((item: any, idx: number) => (
-                    <div key={item.uid} className="p-5 space-y-4 hover:bg-white/[0.01] transition-colors relative">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-muted-foreground">
-                            {(idx + 1).toString().padStart(2, '0')}
-                          </span>
+                ) : paginatedBlacklist && paginatedBlacklist.length > 0 ? (
+                  paginatedBlacklist.map((item: any, idx: number) => {
+                    const globalIdx = (page - 1) * itemsPerPage + idx;
+                    return (
+                      <div key={item.uid} className="p-5 space-y-4 hover:bg-white/[0.01] transition-colors relative">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono text-muted-foreground">
+                              {(globalIdx + 1).toString().padStart(2, '0')}
+                            </span>
                           <span className="font-mono text-sm font-bold text-red-455 tracking-wider">{item.uid}</span>
                           <button onClick={() => { navigator.clipboard.writeText(item.uid); toast.success("UID copied"); }} className="text-muted-foreground/40 hover:text-primary transition-all">
                             <Copy size={12} />
@@ -722,19 +799,53 @@ function ResellerBypass() {
                       </div>
 
                       <div className="flex justify-end pt-1">
-                        <Btn variant="outline" size="sm" className="text-emerald-450 border-emerald-500/20 hover:bg-emerald-500/10" onClick={() => removeBlacklistMutation.mutate(item.uid)}>
+                        <Btn variant="outline" size="sm" className="text-primary border-primary/20 hover:bg-primary/10" onClick={() => removeBlacklistMutation.mutate(item.uid)}>
                           Unban UID
                         </Btn>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="py-12 text-center text-muted-foreground italic text-sm">
-                    No blacklisted UIDs found.
-                  </div>
-                )}
+                  );
+                })
+              ) : (
+                <div className="py-12 text-center text-muted-foreground italic text-sm">
+                  No blacklisted UIDs found.
+                </div>
+              )}
+            </div>
+
+            {totalBlPages > 1 && (
+              <div className="p-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 bg-card/10">
+                <div className="text-xs text-muted-foreground font-medium">
+                  Showing page <span className="font-bold text-white">{page}</span> of{" "}
+                  <span className="font-bold text-white">{totalBlPages}</span> ({filteredBlacklist.length} total)
+                </div>
+                <div className="flex gap-2">
+                  <Btn
+                    variant="outline"
+                    size="sm"
+                    disabled={page === 1}
+                    onClick={() => {
+                      setPage(p => Math.max(1, p - 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    Previous
+                  </Btn>
+                  <Btn
+                    variant="outline"
+                    size="sm"
+                    disabled={page === totalBlPages}
+                    onClick={() => {
+                      setPage(p => Math.min(totalBlPages, p + 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    Next
+                  </Btn>
+                </div>
               </div>
-            </Card>
+            )}
+          </Card>
           )}
 
           {/* TAB 3: Logs */}
@@ -768,18 +879,18 @@ function ResellerBypass() {
                           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                         </td>
                       </tr>
-                    ) : filteredLogs && filteredLogs.length > 0 ? (
-                      filteredLogs.map((log: any) => (
+                    ) : paginatedLogs && paginatedLogs.length > 0 ? (
+                      paginatedLogs.map((log: any) => (
                         <tr key={log.id} className="hover:bg-primary/[0.02] transition-colors">
                           <td className="py-4 px-6">
                             <div className="flex items-center">
                               <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                                log.status === "allowed" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]" :
+                                log.status === "allowed" ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_15px_var(--primary-glow)]" :
                                 log.status === "blocked" ? "bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]" :
                                 "bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
                               }`}>
                                 <span className={`h-1.5 w-1.5 rounded-full ${
-                                  log.status === "allowed" ? "bg-emerald-400 animate-pulse" :
+                                  log.status === "allowed" ? "bg-primary animate-pulse" :
                                   log.status === "blocked" ? "bg-red-400" : "bg-amber-400 animate-pulse"
                                 }`} />
                                 {log.status}
@@ -870,56 +981,92 @@ function ResellerBypass() {
                   <div className="py-20 text-center">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                   </div>
-                ) : filteredLogs && filteredLogs.length > 0 ? (
-                  filteredLogs.map((log: any, idx: number) => (
-                    <div key={log.id} className="p-4 space-y-4 hover:bg-white/[0.01] transition-colors relative">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-muted-foreground">
-                            {(idx + 1).toString().padStart(2, '0')}
+                ) : paginatedLogs && paginatedLogs.length > 0 ? (
+                  paginatedLogs.map((log: any, idx: number) => {
+                    const globalIdx = (page - 1) * itemsPerPage + idx;
+                    return (
+                      <div key={log.id} className="p-4 space-y-4 hover:bg-white/[0.01] transition-colors relative">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono text-muted-foreground">
+                              {(globalIdx + 1).toString().padStart(2, '0')}
+                            </span>
+                            <span className="font-mono text-sm font-bold text-white tracking-wider">{log.uid}</span>
+                            <button onClick={() => { navigator.clipboard.writeText(log.uid); toast.success("UID copied"); }} className="text-muted-foreground/40 hover:text-primary transition-all">
+                              <Copy size={12} />
+                            </button>
+                          </div>
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                            log.status === "allowed" ? "bg-primary/10 text-primary border-primary/20" :
+                            log.status === "blocked" ? "bg-red-500/10 text-red-400 border-red-500/20" :
+                            "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                          }`}>
+                            {log.status}
                           </span>
-                          <span className="font-mono text-sm font-bold text-white tracking-wider">{log.uid}</span>
-                          <button onClick={() => { navigator.clipboard.writeText(log.uid); toast.success("UID copied"); }} className="text-muted-foreground/40 hover:text-primary transition-all">
-                            <Copy size={12} />
+                        </div>
+
+                        <div className="flex justify-between items-center text-xs text-muted-foreground">
+                          <div>
+                            <span className="font-semibold text-white bg-white/5 border border-white/5 rounded px-2 py-0.5 text-xs mr-2">{log.region || "GLOBAL"}</span>
+                            <span>{log.ip || "Unknown IP"}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-semibold text-white block">{log.city || "Unknown City"}</span>
+                            <span className="text-[10px] text-muted-foreground block">{log.country || "Unknown Country"}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center text-xs pt-1">
+                          <span className="text-[10px] font-mono text-muted-foreground/60">{new Date(log.ts * 1000).toLocaleString()}</span>
+                          <button
+                            onClick={() => { setSelectedLogDetails(log); setIsDetailsModalOpen(true); }}
+                            className="text-xs text-primary font-bold hover:underline flex items-center gap-1"
+                          >
+                            <Info size={12} /> View Details
                           </button>
                         </div>
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                          log.status === "allowed" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
-                          log.status === "blocked" ? "bg-red-500/10 text-red-400 border-red-500/20" :
-                          "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                        }`}>
-                          {log.status}
-                        </span>
                       </div>
-
-                      <div className="flex justify-between items-center text-xs text-muted-foreground">
-                        <div>
-                          <span className="font-semibold text-white bg-white/5 border border-white/5 rounded px-2 py-0.5 text-xs mr-2">{log.region || "GLOBAL"}</span>
-                          <span>{log.ip || "Unknown IP"}</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-semibold text-white block">{log.city || "Unknown City"}</span>
-                          <span className="text-[10px] text-muted-foreground block">{log.country || "Unknown Country"}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center text-xs pt-1">
-                        <span className="text-[10px] font-mono text-muted-foreground/60">{new Date(log.ts * 1000).toLocaleString()}</span>
-                        <button
-                          onClick={() => { setSelectedLogDetails(log); setIsDetailsModalOpen(true); }}
-                          className="text-xs text-primary font-bold hover:underline flex items-center gap-1"
-                        >
-                          <Info size={12} /> View Details
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="py-12 text-center text-muted-foreground italic text-sm">
                     No bypass attempts found.
                   </div>
                 )}
               </div>
+
+              {totalLogsPages > 1 && (
+                <div className="p-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 bg-card/10">
+                  <div className="text-xs text-muted-foreground font-medium">
+                    Showing page <span className="font-bold text-white">{page}</span> of{" "}
+                    <span className="font-bold text-white">{totalLogsPages}</span> ({filteredLogs.length} total)
+                  </div>
+                  <div className="flex gap-2">
+                    <Btn
+                      variant="outline"
+                      size="sm"
+                      disabled={page === 1}
+                      onClick={() => {
+                        setPage(p => Math.max(1, p - 1));
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                    >
+                      Previous
+                    </Btn>
+                    <Btn
+                      variant="outline"
+                      size="sm"
+                      disabled={page === totalLogsPages}
+                      onClick={() => {
+                        setPage(p => Math.min(totalLogsPages, p + 1));
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                    >
+                      Next
+                    </Btn>
+                  </div>
+                </div>
+              )}
             </Card>
           )}
 
@@ -959,8 +1106,8 @@ function ResellerBypass() {
                   <input name="name" type="text" placeholder="e.g. customer name"
                     className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50 text-white" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
+                <div className={`grid grid-cols-2 gap-4 ${isWlRegionOpen || isWlDurationOpen ? "relative z-30" : ""}`}>
+                  <div className={isWlRegionOpen ? "relative z-30" : ""}>
                     <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Region</label>
                     <div className="relative mt-2">
                       <button
@@ -979,7 +1126,7 @@ function ResellerBypass() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: 10 }}
-                              className="absolute left-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl border border-border/60 bg-card/95 p-1.5 backdrop-blur-xl shadow-2xl max-h-48 overflow-y-auto scrollbar-thin"
+                              className="glass-dropdown absolute left-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl p-1.5 max-h-48 overflow-y-auto scrollbar-thin"
                             >
                               {REGIONS.map((reg) => (
                                 <button
@@ -1000,7 +1147,7 @@ function ResellerBypass() {
                       </AnimatePresence>
                     </div>
                   </div>
-                  <div>
+                  <div className={isWlDurationOpen ? "relative z-30" : ""}>
                     <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Duration</label>
                     <div className="relative mt-2">
                       <button
@@ -1019,7 +1166,7 @@ function ResellerBypass() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: 10 }}
-                              className="absolute right-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl border border-border/60 bg-card/95 p-1.5 backdrop-blur-xl shadow-2xl"
+                              className="glass-dropdown absolute right-0 top-[calc(100%+8px)] z-20 w-full overflow-hidden rounded-xl p-1.5"
                             >
                               {DURATIONS.map((dur) => (
                                 <button
@@ -1148,7 +1295,7 @@ function ResellerBypass() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center glass-overlay backdrop-blur-md p-4"
           >
             <motion.div
               initial={{ scale: 0.95, y: 20 }}
@@ -1171,12 +1318,12 @@ function ResellerBypass() {
 
               <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1 scrollbar-thin">
                 {/* Status & Region Card */}
-                <div className="relative flex items-center justify-between rounded-xl border border-white/5 bg-black/40 p-4">
+                <div className="relative flex items-center justify-between rounded-xl border border-white/5 glass-panel p-4">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 block mb-1">Status & Region</span>
                     <div className="flex items-center gap-2">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                        selectedLogDetails.status === "allowed" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                        selectedLogDetails.status === "allowed" ? "bg-primary/10 text-primary border-primary/20" :
                         selectedLogDetails.status === "blocked" ? "bg-red-500/10 text-red-400 border-red-500/20" :
                         "bg-amber-500/10 text-amber-400 border-amber-500/20"
                       }`}>
@@ -1188,7 +1335,7 @@ function ResellerBypass() {
                 </div>
 
                 {/* Player UID Card */}
-                <div className="relative flex items-center justify-between rounded-xl border border-white/5 bg-black/40 p-4 transition-all hover:bg-black/60">
+                <div className="relative flex items-center justify-between rounded-xl border border-white/5 glass-panel p-4 transition-all hover:bg-white/10">
                   <div className="flex-1 min-w-0 pr-4">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 block mb-1">Player UID</span>
                     <span className="font-mono text-sm font-bold text-white tracking-wider select-all block truncate">{selectedLogDetails.uid}</span>
@@ -1203,7 +1350,7 @@ function ResellerBypass() {
                 </div>
 
                 {/* IP & Location Card */}
-                <div className="relative flex items-center justify-between rounded-xl border border-white/5 bg-black/40 p-4 transition-all hover:bg-black/60">
+                <div className="relative flex items-center justify-between rounded-xl border border-white/5 glass-panel p-4 transition-all hover:bg-white/10">
                   <div className="flex-1 min-w-0 pr-4">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 block mb-1">IP & Geolocation</span>
                     <span className="font-mono text-sm font-bold text-white tracking-wider select-all block truncate">
@@ -1220,7 +1367,7 @@ function ResellerBypass() {
                 </div>
 
                 {/* Timestamp Card */}
-                <div className="relative flex items-center justify-between rounded-xl border border-white/5 bg-black/40 p-4">
+                <div className="relative flex items-center justify-between rounded-xl border border-white/5 glass-panel p-4">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 block mb-1">Request Timestamp</span>
                     <span className="text-sm font-bold text-white tracking-wide block">{new Date(selectedLogDetails.ts * 1000).toLocaleString()}</span>
@@ -1228,7 +1375,7 @@ function ResellerBypass() {
                 </div>
 
                 {/* Open ID Card */}
-                <div className="relative flex items-center justify-between rounded-xl border border-white/5 bg-black/40 p-4 transition-all hover:bg-black/60">
+                <div className="relative flex items-center justify-between rounded-xl border border-white/5 glass-panel p-4 transition-all hover:bg-white/10">
                   <div className="flex-1 min-w-0 pr-4">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 block mb-1">Open ID</span>
                     <span className="font-mono text-sm font-bold text-white tracking-wider select-all block truncate">
@@ -1247,11 +1394,11 @@ function ResellerBypass() {
                 </div>
 
                 {/* Access Token Card */}
-                <div className="relative flex items-start justify-between rounded-xl border border-white/5 bg-black/40 p-4 transition-all hover:bg-black/60">
+                <div className="relative flex items-start justify-between rounded-xl border border-white/5 glass-panel p-4 transition-all hover:bg-white/10">
                   <div className="flex-1 min-w-0 pr-4">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 block mb-1">Access Token</span>
                     {selectedLogDetails.token ? (
-                      <span className="font-mono text-xs font-semibold text-emerald-400 select-all block break-all whitespace-pre-wrap max-h-32 overflow-y-auto scrollbar-thin">
+                      <span className="font-mono text-xs font-semibold text-primary select-all block break-all whitespace-pre-wrap max-h-32 overflow-y-auto scrollbar-thin">
                         {selectedLogDetails.token}
                       </span>
                     ) : (
@@ -1295,7 +1442,7 @@ function ResellerBypass() {
 function MiniStatCard({ label, value, icon: Icon, accent = "primary" }: { label: string; value: number | string; icon: any; accent?: "primary" | "success" | "danger" }) {
   const accentColors = {
     primary: "text-primary border-primary/20 bg-primary/5",
-    success: "text-emerald-400 border-emerald-500/20 bg-emerald-500/5",
+    success: "text-primary border-primary/20 bg-primary/5",
     danger: "text-red-400 border-red-500/20 bg-red-500/5"
   };
   

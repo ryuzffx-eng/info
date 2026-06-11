@@ -110,7 +110,7 @@ function Files() {
               </div>
 
               <div className="mt-5 space-y-2">
-                <div className="flex items-center gap-2 rounded-xl border border-white/5 bg-black/20 p-2 px-3 h-10">
+                <div className="flex items-center gap-2 rounded-xl border border-white/5 bg-white/[0.04] p-2 px-3 h-10">
                    <span className="flex-1 truncate font-mono text-[10px] text-muted-foreground/60 select-all cursor-text">{downloadUrl}</span>
                 </div>
               </div>
