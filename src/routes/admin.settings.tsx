@@ -123,11 +123,7 @@ function Settings() {
               value={formState.support_email ?? ""} 
               onChangeText={(val) => updateKey("support_email", val)} 
             />
-            <Field 
-              label="Discord invite" 
-              value={formState.discord_invite ?? ""} 
-              onChangeText={(val) => updateKey("discord_invite", val)} 
-            />
+
           </div>
         </Card>
 
@@ -144,12 +140,7 @@ function Settings() {
               value={formState.api_base_url ?? ""} 
               onChangeText={(val) => updateKey("api_base_url", val)} 
             />
-            <Field 
-              label="Webhook URL" 
-              placeholder="https://yourapp.com/webhook" 
-              value={formState.webhook_url ?? ""} 
-              onChangeText={(val) => updateKey("webhook_url", val)} 
-            />
+
             <Field 
               label="Rate limit (req/min)" 
               value={formState.rate_limit ?? ""} 
