@@ -13,9 +13,6 @@ import { DashboardBottomNav } from "./DashboardBottomNav";
 
 const userNav = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Overview", description: "Account overview & stats" },
-  { to: "/dashboard/licenses", icon: Key, label: "My Licenses", description: "Manage your active software" },
-  { to: "/dashboard/orders", icon: ScrollText, label: "Orders", description: "View your purchase history" },
-  { to: "/dashboard/support", icon: MessageCircle, label: "Support", description: "Get help with your products" },
 ];
 
 const resellerDashboardNav = [
@@ -45,9 +42,7 @@ const adminManagement = [
 
 const adminCatalog = [
   { to: "/admin/applications", icon: AppWindow, label: "Applications", description: "Manage your software" },
-  { to: "/admin/products", icon: Package, label: "Products", description: "Store product listings" },
   { to: "/admin/files", icon: FolderOpen, label: "Files", description: "Storage and downloads" },
-  { to: "/admin/store-pages", icon: Store, label: "Store Pages", description: "Custom storefront pages" },
 ];
 
 const adminSystem = [

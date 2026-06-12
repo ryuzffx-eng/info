@@ -25,12 +25,6 @@ function CustomerDashboard() {
 
   if (isUserLoading || isLicensesLoading) return <DashboardShell variant="user"><div className="flex h-64 items-center justify-center"><Loader2 className="animate-spin text-primary" size={32} /></div></DashboardShell>;
 
-  // If no licenses (not a buyer), redirect to store
-  if (licenses && licenses.length === 0) {
-    window.location.href = "/";
-    return null;
-  }
-
   return (
     <DashboardShell variant="user">
       <div className="space-y-8">
@@ -50,25 +44,31 @@ function CustomerDashboard() {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-primary/80">Active Subscriptions</h3>
           </div>
           <div className="p-0">
-            {licenses?.map((license: any) => (
-              <div key={license.id} className="flex items-center justify-between border-b border-white/5 px-6 py-5 last:border-0 hover:bg-white/[0.02] transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Key size={20} />
+            {licenses && licenses.length > 0 ? (
+              licenses.map((license: any) => (
+                <div key={license.id} className="flex items-center justify-between border-b border-white/5 px-6 py-5 last:border-0 hover:bg-white/[0.02] transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Key size={20} />
+                    </div>
+                    <div>
+                      <div className="font-semibold">{license.software_name || "Premium Software"}</div>
+                      <div className="text-xs text-muted-foreground font-mono mt-0.5">{license.key.slice(0, 8)}••••••••••••</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-semibold">{license.software_name || "Premium Software"}</div>
-                    <div className="text-xs text-muted-foreground font-mono mt-0.5">{license.key.slice(0, 8)}••••••••••••</div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-primary">Active</div>
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1 uppercase tracking-tighter">
+                      <Clock size={10} /> {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString() : "Lifetime"}
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium text-primary">Active</div>
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1 uppercase tracking-tighter">
-                    <Clock size={10} /> {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString() : "Lifetime"}
-                  </div>
-                </div>
+              ))
+            ) : (
+              <div className="px-6 py-12 text-center text-muted-foreground">
+                No active licenses found. Please contact support or purchase a license.
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

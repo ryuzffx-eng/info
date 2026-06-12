@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResellerRouteImport } from './routes/reseller'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as PublicRouteImport } from './routes/_public'
@@ -22,23 +23,23 @@ import { Route as ResellerLicensesRouteImport } from './routes/reseller.licenses
 import { Route as ResellerBypassRouteImport } from './routes/reseller.bypass'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTelemetryRouteImport } from './routes/admin.telemetry'
-import { Route as AdminStorePagesRouteImport } from './routes/admin.store-pages'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminResellersRouteImport } from './routes/admin.resellers'
-import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminLicensesRouteImport } from './routes/admin.licenses'
 import { Route as AdminFilesRouteImport } from './routes/admin.files'
 import { Route as AdminBypassRouteImport } from './routes/admin.bypass'
 import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
-import { Route as PublicStatusRouteImport } from './routes/_public.status'
-import { Route as PublicReviewsRouteImport } from './routes/_public.reviews'
-import { Route as PublicMarketplaceRouteImport } from './routes/_public.marketplace'
 
 const ResellerRoute = ResellerRouteImport.update({
   id: '/reseller',
   path: '/reseller',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -100,11 +101,6 @@ const AdminTelemetryRoute = AdminTelemetryRouteImport.update({
   path: '/telemetry',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminStorePagesRoute = AdminStorePagesRouteImport.update({
-  id: '/store-pages',
-  path: '/store-pages',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -113,11 +109,6 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 const AdminResellersRoute = AdminResellersRouteImport.update({
   id: '/resellers',
   path: '/resellers',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminProductsRoute = AdminProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminLogsRoute = AdminLogsRouteImport.update({
@@ -150,40 +141,21 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
-const PublicStatusRoute = PublicStatusRouteImport.update({
-  id: '/status',
-  path: '/status',
-  getParentRoute: () => PublicRoute,
-} as any)
-const PublicReviewsRoute = PublicReviewsRouteImport.update({
-  id: '/reviews',
-  path: '/reviews',
-  getParentRoute: () => PublicRoute,
-} as any)
-const PublicMarketplaceRoute = PublicMarketplaceRouteImport.update({
-  id: '/marketplace',
-  path: '/marketplace',
-  getParentRoute: () => PublicRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/reseller': typeof ResellerRouteWithChildren
-  '/marketplace': typeof PublicMarketplaceRoute
-  '/reviews': typeof PublicReviewsRoute
-  '/status': typeof PublicStatusRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/bypass': typeof AdminBypassRoute
   '/admin/files': typeof AdminFilesRoute
   '/admin/licenses': typeof AdminLicensesRoute
   '/admin/logs': typeof AdminLogsRoute
-  '/admin/products': typeof AdminProductsRoute
   '/admin/resellers': typeof AdminResellersRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/admin/store-pages': typeof AdminStorePagesRoute
   '/admin/telemetry': typeof AdminTelemetryRoute
   '/admin/users': typeof AdminUsersRoute
   '/reseller/bypass': typeof ResellerBypassRoute
@@ -195,19 +167,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
-  '/marketplace': typeof PublicMarketplaceRoute
-  '/reviews': typeof PublicReviewsRoute
-  '/status': typeof PublicStatusRoute
+  '/login': typeof LoginRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/bypass': typeof AdminBypassRoute
   '/admin/files': typeof AdminFilesRoute
   '/admin/licenses': typeof AdminLicensesRoute
   '/admin/logs': typeof AdminLogsRoute
-  '/admin/products': typeof AdminProductsRoute
   '/admin/resellers': typeof AdminResellersRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/admin/store-pages': typeof AdminStorePagesRoute
   '/admin/telemetry': typeof AdminTelemetryRoute
   '/admin/users': typeof AdminUsersRoute
   '/reseller/bypass': typeof ResellerBypassRoute
@@ -223,20 +191,16 @@ export interface FileRoutesById {
   '/_public': typeof PublicRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/reseller': typeof ResellerRouteWithChildren
-  '/_public/marketplace': typeof PublicMarketplaceRoute
-  '/_public/reviews': typeof PublicReviewsRoute
-  '/_public/status': typeof PublicStatusRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/bypass': typeof AdminBypassRoute
   '/admin/files': typeof AdminFilesRoute
   '/admin/licenses': typeof AdminLicensesRoute
   '/admin/logs': typeof AdminLogsRoute
-  '/admin/products': typeof AdminProductsRoute
   '/admin/resellers': typeof AdminResellersRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/admin/store-pages': typeof AdminStorePagesRoute
   '/admin/telemetry': typeof AdminTelemetryRoute
   '/admin/users': typeof AdminUsersRoute
   '/reseller/bypass': typeof ResellerBypassRoute
@@ -253,20 +217,16 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/dashboard'
+    | '/login'
     | '/reseller'
-    | '/marketplace'
-    | '/reviews'
-    | '/status'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/bypass'
     | '/admin/files'
     | '/admin/licenses'
     | '/admin/logs'
-    | '/admin/products'
     | '/admin/resellers'
     | '/admin/settings'
-    | '/admin/store-pages'
     | '/admin/telemetry'
     | '/admin/users'
     | '/reseller/bypass'
@@ -278,19 +238,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/dashboard'
-    | '/marketplace'
-    | '/reviews'
-    | '/status'
+    | '/login'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/bypass'
     | '/admin/files'
     | '/admin/licenses'
     | '/admin/logs'
-    | '/admin/products'
     | '/admin/resellers'
     | '/admin/settings'
-    | '/admin/store-pages'
     | '/admin/telemetry'
     | '/admin/users'
     | '/reseller/bypass'
@@ -305,20 +261,16 @@ export interface FileRouteTypes {
     | '/_public'
     | '/admin'
     | '/dashboard'
+    | '/login'
     | '/reseller'
-    | '/_public/marketplace'
-    | '/_public/reviews'
-    | '/_public/status'
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/bypass'
     | '/admin/files'
     | '/admin/licenses'
     | '/admin/logs'
-    | '/admin/products'
     | '/admin/resellers'
     | '/admin/settings'
-    | '/admin/store-pages'
     | '/admin/telemetry'
     | '/admin/users'
     | '/reseller/bypass'
@@ -334,6 +286,7 @@ export interface RootRouteChildren {
   PublicRoute: typeof PublicRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  LoginRoute: typeof LoginRoute
   ResellerRoute: typeof ResellerRouteWithChildren
 }
 
@@ -344,6 +297,13 @@ declare module '@tanstack/react-router' {
       path: '/reseller'
       fullPath: '/reseller'
       preLoaderRoute: typeof ResellerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -430,13 +390,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTelemetryRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/store-pages': {
-      id: '/admin/store-pages'
-      path: '/store-pages'
-      fullPath: '/admin/store-pages'
-      preLoaderRoute: typeof AdminStorePagesRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/settings': {
       id: '/admin/settings'
       path: '/settings'
@@ -449,13 +402,6 @@ declare module '@tanstack/react-router' {
       path: '/resellers'
       fullPath: '/admin/resellers'
       preLoaderRoute: typeof AdminResellersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/products': {
-      id: '/admin/products'
-      path: '/products'
-      fullPath: '/admin/products'
-      preLoaderRoute: typeof AdminProductsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/logs': {
@@ -500,41 +446,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/_public/status': {
-      id: '/_public/status'
-      path: '/status'
-      fullPath: '/status'
-      preLoaderRoute: typeof PublicStatusRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_public/reviews': {
-      id: '/_public/reviews'
-      path: '/reviews'
-      fullPath: '/reviews'
-      preLoaderRoute: typeof PublicReviewsRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_public/marketplace': {
-      id: '/_public/marketplace'
-      path: '/marketplace'
-      fullPath: '/marketplace'
-      preLoaderRoute: typeof PublicMarketplaceRouteImport
-      parentRoute: typeof PublicRoute
-    }
   }
 }
 
 interface PublicRouteChildren {
-  PublicMarketplaceRoute: typeof PublicMarketplaceRoute
-  PublicReviewsRoute: typeof PublicReviewsRoute
-  PublicStatusRoute: typeof PublicStatusRoute
   PublicIndexRoute: typeof PublicIndexRoute
 }
 
 const PublicRouteChildren: PublicRouteChildren = {
-  PublicMarketplaceRoute: PublicMarketplaceRoute,
-  PublicReviewsRoute: PublicReviewsRoute,
-  PublicStatusRoute: PublicStatusRoute,
   PublicIndexRoute: PublicIndexRoute,
 }
 
@@ -548,10 +467,8 @@ interface AdminRouteChildren {
   AdminFilesRoute: typeof AdminFilesRoute
   AdminLicensesRoute: typeof AdminLicensesRoute
   AdminLogsRoute: typeof AdminLogsRoute
-  AdminProductsRoute: typeof AdminProductsRoute
   AdminResellersRoute: typeof AdminResellersRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
-  AdminStorePagesRoute: typeof AdminStorePagesRoute
   AdminTelemetryRoute: typeof AdminTelemetryRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -564,10 +481,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFilesRoute: AdminFilesRoute,
   AdminLicensesRoute: AdminLicensesRoute,
   AdminLogsRoute: AdminLogsRoute,
-  AdminProductsRoute: AdminProductsRoute,
   AdminResellersRoute: AdminResellersRoute,
   AdminSettingsRoute: AdminSettingsRoute,
-  AdminStorePagesRoute: AdminStorePagesRoute,
   AdminTelemetryRoute: AdminTelemetryRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
@@ -599,6 +514,7 @@ const rootRouteChildren: RootRouteChildren = {
   PublicRoute: PublicRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  LoginRoute: LoginRoute,
   ResellerRoute: ResellerRouteWithChildren,
 }
 export const routeTree = rootRouteImport

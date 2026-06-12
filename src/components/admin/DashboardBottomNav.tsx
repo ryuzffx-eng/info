@@ -8,9 +8,6 @@ import { useState, useEffect } from "react";
 
 const userLinks = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { to: "/dashboard/licenses", label: "Licenses", icon: Key },
-  { to: "/dashboard/orders", label: "Orders", icon: ScrollText },
-  { to: "/dashboard/support", label: "Support", icon: MessageCircle },
 ];
 
 const resellerLinks = [
@@ -47,9 +44,7 @@ const adminCategories = [
     icon: Package,
     items: [
       { to: "/admin/applications", label: "Applications", icon: AppWindow },
-      { to: "/admin/products", label: "Products", icon: Package },
       { to: "/admin/files", label: "Files", icon: FolderOpen },
-      { to: "/admin/store-pages", label: "Store Pages", icon: Store },
     ],
   },
   {
