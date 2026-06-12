@@ -19,7 +19,7 @@ const links = [
 ];
 
 const messages = [
-  { text: "Join our Discord community", url: "https://discord.gg/fZMfNARQtf" },
+  { text: "Join our Discord community", url: "https://discord.gg/mVvwkpAvy7" },
   { text: "Join our Telegram channel", url: "https://t.me/EmeriteStore" },
 ];
 

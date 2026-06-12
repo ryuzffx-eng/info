@@ -127,7 +127,7 @@ function HomePage() {
                 Explore Marketplace <ArrowRight size={16} />
               </GlassButton>
               <GlassButton
-                href="https://discord.gg/fZMfNARQtf"
+                href="https://discord.gg/mVvwkpAvy7"
                 variant="glass"
                 size="lg"
               >
