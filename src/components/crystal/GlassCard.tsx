@@ -13,13 +13,12 @@ export const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       <motion.div
         ref={ref}
         className={cn(
-          "glass-card rounded-2xl",
+          "glass-card rounded-3xl",
+          !hover && "glass-card--static",
           shine && "glass-shine",
-          hover && "hover:-translate-y-1 hover:border-primary/25",
           className,
         )}
-        whileHover={hover ? { y: -4 } : undefined}
-        transition={{ type: "spring", stiffness: 400, damping: 28 }}
+        transition={{ type: "spring", stiffness: 400, damping: 30 }}
         {...props}
       >
         {children}

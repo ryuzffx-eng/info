@@ -19,7 +19,7 @@ export function MobileBottomNav() {
 
   return (
     <nav className="fixed bottom-4 left-4 right-4 z-50 md:hidden">
-      <div className="glass-nav-pill mx-auto flex max-w-lg items-center justify-between gap-1 rounded-2xl p-1.5 shadow-[var(--shadow-glass)]">
+      <div className="glass-nav-pill mx-auto flex max-w-md items-center justify-between rounded-2xl p-1.5">
         {links.map((l) => {
           const active = isActive(l.to);
           const Icon = l.icon;
@@ -37,9 +37,11 @@ export function MobileBottomNav() {
                 />
               )}
               <Icon
-                size={20}
-                strokeWidth={active ? 2.5 : 2}
-                className={`relative z-10 transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}
+                size={19}
+                strokeWidth={active ? 2.5 : 1.75}
+                className={`relative z-10 transition-colors ${
+                  active ? "text-primary" : "text-muted-foreground"
+                }`}
               />
               <span
                 className={`relative z-10 text-[9px] font-semibold uppercase tracking-wider ${

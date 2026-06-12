@@ -1,48 +1,74 @@
 import { motion } from "framer-motion";
-import { useParallax } from "./ParallaxContext";
 
+/**
+ * Animated gradient mesh — large emerald blobs slowly drift & morph behind the
+ * frosted glass. Smooth, ambient, premium. No particles.
+ */
 export function AuroraBackground() {
-  const { x, y } = useParallax();
-  const px = (x - 0.5) * 50;
-  const py = (y - 0.5) * 35;
-
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ background: "var(--bg-mesh)" }}>
-      {/* Luminous aurora blobs */}
+      {/* Blob 1 — primary emerald, top-left sweep */}
       <motion.div
-        className="absolute -left-[25%] top-[5%] h-[60%] w-[75%] rounded-full blur-[110px]"
+        className="absolute -left-[15%] -top-[20%] h-[70%] w-[70%] rounded-full blur-[130px]"
         style={{
-          background: "radial-gradient(ellipse, var(--primary-glow) 0%, transparent 68%)",
-          transform: `translate(${px * 0.7}px, ${py * 0.5}px)`,
+          background:
+            "radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--primary) 38%, transparent) 0%, transparent 65%)",
         }}
-        animate={{ opacity: [0.55, 0.85, 0.55], scale: [1, 1.08, 1] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        animate={{
+          x: ["0%", "18%", "-6%", "0%"],
+          y: ["0%", "12%", "20%", "0%"],
+          scale: [1, 1.15, 0.95, 1],
+        }}
+        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
       />
 
+      {/* Blob 2 — neon mint, right side */}
       <motion.div
-        className="absolute -right-[20%] top-[15%] h-[55%] w-[70%] rounded-full blur-[100px]"
+        className="absolute -right-[12%] top-[8%] h-[60%] w-[60%] rounded-full blur-[140px]"
         style={{
-          background: "radial-gradient(ellipse, var(--accent-glow) 0%, transparent 62%)",
-          transform: `translate(${-px * 0.55}px, ${py * 0.35}px)`,
+          background:
+            "radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--neon) 26%, transparent) 0%, transparent 65%)",
         }}
-        animate={{ opacity: [0.45, 0.7, 0.45] }}
-        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+        animate={{
+          x: ["0%", "-14%", "8%", "0%"],
+          y: ["0%", "16%", "-8%", "0%"],
+          scale: [1, 0.9, 1.18, 1],
+        }}
+        transition={{ duration: 26, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
       />
 
+      {/* Blob 3 — accent, bottom-center */}
       <motion.div
-        className="absolute left-[20%] bottom-[10%] h-[45%] w-[60%] rounded-full blur-[90px]"
+        className="absolute left-[20%] bottom-[-25%] h-[65%] w-[65%] rounded-full blur-[150px]"
         style={{
-          background: "radial-gradient(ellipse, color-mix(in srgb, var(--neon) 16%, transparent) 0%, transparent 65%)",
-          transform: `translate(${px * 0.3}px, ${-py * 0.4}px)`,
+          background:
+            "radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--accent) 30%, transparent) 0%, transparent 65%)",
         }}
-        animate={{ opacity: [0.3, 0.55, 0.3] }}
-        transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        animate={{
+          x: ["0%", "12%", "-10%", "0%"],
+          y: ["0%", "-12%", "6%", "0%"],
+          scale: [1, 1.2, 0.92, 1],
+        }}
+        transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 3 }}
       />
 
-      <div className="absolute inset-0" style={{ background: "var(--gradient-hero)" }} />
+      {/* Blob 4 — faint deep emerald, center drift for fill */}
+      <motion.div
+        className="absolute left-[35%] top-[30%] h-[50%] w-[50%] rounded-full blur-[160px]"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--primary) 22%, transparent) 0%, transparent 70%)",
+        }}
+        animate={{
+          x: ["0%", "-16%", "14%", "0%"],
+          y: ["0%", "10%", "-14%", "0%"],
+          scale: [1, 1.1, 1.05, 1],
+        }}
+        transition={{ duration: 34, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      />
 
-      {/* Glass frost layer */}
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.03)_0%,transparent_30%,rgba(255,255,255,0.02)_100%)]" />
+      {/* Frost wash to soften the whole mesh into glass */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.035)_0%,transparent_40%,rgba(255,255,255,0.018)_100%)]" />
     </div>
   );
 }

@@ -12,9 +12,9 @@ type ThemeColor = {
 const themes: Record<string, ThemeColor> = {
   emerald: {
     name: "Emerald Crystal",
-    primary: "#00C878",
+    primary: "#10D588",
     accent: "#00E08A",
-    neon: "#38F5B7",
+    neon: "#5BFFC0",
   },
   sky: {
     name: "Sky",
@@ -138,9 +138,9 @@ const themes: Record<string, ThemeColor> = {
   },
   emergiteBlue: {
     name: "Emerite Blue",
-    primary: "rgb(3 112 255)",
-    accent: "rgb(0 90 220)",
-    neon: "rgb(50 150 255)",
+    primary: "#3B82F6",
+    accent: "#2563EB",
+    neon: "#60A5FA",
   },
 };
 
@@ -156,7 +156,13 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("app-theme") || "emerald";
+      const stored = localStorage.getItem("app-theme");
+      // Force emerald: ignore any previously-cached blue theme
+      if (stored === "emergiteBlue" || stored === "sky" || stored === "electric") {
+        localStorage.setItem("app-theme", "emerald");
+        return "emerald";
+      }
+      return stored || "emerald";
     }
     return "emerald";
   });
@@ -171,7 +177,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const refreshGlobalTheme = useCallback(async () => {
     try {
       const data = await api.theme.getGlobal();
-      if (data?.theme && themes[data.theme]) {
+      // Ignore blue themes — site is emerald-only
+      const blocked = ["emergiteBlue", "sky", "electric"];
+      if (data?.theme && themes[data.theme] && !blocked.includes(data.theme)) {
         setThemeState(data.theme);
         localStorage.setItem("app-theme", data.theme);
       }

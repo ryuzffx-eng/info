@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Shield, Zap, Lock, Key, Activity, ArrowRight, Sparkles, Star, MessageCircle } from "lucide-react";
+import { Shield, Zap, Lock, Key, Activity, ArrowRight, Sparkles, Star, MessageCircle, Monitor, Smartphone, Tablet, ChevronRight } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -34,22 +34,150 @@ function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
   return <span>{n.toLocaleString()}{suffix}</span>;
 }
 
-const getProductColor = (id: unknown) => {
-  const themes = [
-    "from-primary/30 to-accent/10",
-    "from-accent/25 to-neon/10",
-    "from-primary/35 to-primary/15",
-    "from-neon/20 to-primary/15",
-  ];
-  const numId = typeof id === "number" ? id : parseInt(String(id)) || 0;
-  return themes[numId % themes.length];
-};
-
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
 };
+
+const platformIcon = (cat: string) => {
+  const c = (cat || "").toLowerCase();
+  if (c.includes("ios") || c.includes("iphone") || c.includes("ipad")) return Smartphone;
+  if (c.includes("android")) return Tablet;
+  return Monitor;
+};
+
+const platformLabel = (cat: string) => {
+  const c = (cat || "").toLowerCase();
+  if (c.includes("ios") || c.includes("iphone")) return "iOS";
+  if (c.includes("android")) return "Android";
+  if (c.includes("window")) return "Windows";
+  return cat || "General";
+};
+
+type Product = {
+  id: number;
+  name: string;
+  status?: boolean;
+  category?: { name?: string };
+  price: number;
+  image_url?: string;
+  tags?: string[];
+};
+
+function ProductShowcase({ products }: { products: Product[] }) {
+  const [selected, setSelected] = useState(0);
+
+  const items = products.slice(0, 6);
+  const active = items[selected] ?? null;
+
+  if (items.length === 0) return null;
+
+  const PlatformIcon = active ? platformIcon(active.category?.name ?? "") : Monitor;
+  const label = active ? platformLabel(active.category?.name ?? "") : "";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="grid gap-4 lg:grid-cols-[1fr_360px]"
+    >
+      {/* Left — big preview */}
+      <GlassCard hover={false} className="relative overflow-hidden min-h-[340px] flex flex-col justify-end p-0">
+        {/* Preview image / placeholder */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
+        {active?.image_url ? (
+          <img src={active.image_url} alt={active.name} className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl scale-150" />
+              <Sparkles size={64} className="relative text-primary/60" />
+            </div>
+          </div>
+        )}
+
+        {/* Bottom info bar */}
+        <div className="relative z-10 flex items-end justify-between p-6 pt-20 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+          <div>
+            {/* Category pills */}
+            <div className="mb-3 flex gap-2">
+              {items.map((p, i) => (
+                <button
+                  key={p.id}
+                  onClick={() => setSelected(i)}
+                  className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-all ${
+                    i === selected
+                      ? "bg-primary text-primary-foreground"
+                      : "glass text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {platformLabel(p.category?.name ?? "")}
+                </button>
+              ))}
+            </div>
+            <h2 className="text-4xl font-extrabold tracking-tight">{active?.name}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{label}</p>
+          </div>
+          <GlassButton to="/marketplace" size="lg" className="shrink-0 ml-4">
+            Buy now &amp; details <ChevronRight size={16} />
+          </GlassButton>
+        </div>
+      </GlassCard>
+
+      {/* Right — product list */}
+      <div className="flex flex-col gap-2">
+        {items.map((p, i) => {
+          const Icon = platformIcon(p.category?.name ?? "");
+          const isActive = i === selected;
+          return (
+            <button
+              key={p.id}
+              onClick={() => setSelected(i)}
+              className={`w-full text-left rounded-2xl border transition-all duration-200 flex items-center gap-3 p-3 ${
+                isActive
+                  ? "bg-primary/10 border-primary/30"
+                  : "glass border-transparent hover:border-white/10"
+              }`}
+            >
+              {/* Thumbnail */}
+              <div className={`shrink-0 h-14 w-20 rounded-xl overflow-hidden flex items-center justify-center ${isActive ? "bg-primary/20" : "bg-white/5"}`}>
+                {p.image_url ? (
+                  <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                ) : (
+                  <Sparkles size={20} className={isActive ? "text-primary" : "text-muted-foreground"} />
+                )}
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{p.category?.name?.toUpperCase() ?? "PRODUCT"}</div>
+                <div className="font-bold text-sm truncate">{p.name}</div>
+                <div className="flex items-center gap-1 mt-0.5 text-[10px] text-muted-foreground">
+                  <Icon size={10} />
+                  <span>{platformLabel(p.category?.name ?? "")}</span>
+                </div>
+              </div>
+
+              {/* Price */}
+              <div className={`shrink-0 text-sm font-bold ${isActive ? "text-primary" : "text-foreground"}`}>
+                ${p.price}
+              </div>
+            </button>
+          );
+        })}
+
+        <Link
+          to="/marketplace"
+          className="mt-1 flex items-center justify-center gap-1.5 rounded-2xl glass border border-white/8 py-3 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+        >
+          View all products <ArrowRight size={12} />
+        </Link>
+      </div>
+    </motion.div>
+  );
+}
 
 function HomePage() {
   const features = [
@@ -69,7 +197,7 @@ function HomePage() {
 
   const { data: productsData = [] } = useQuery({
     queryKey: ["trending-products"],
-    queryFn: () => api.marketplace.getProducts({ featured_only: true }),
+    queryFn: () => api.marketplace.getProducts(),
   });
 
   const { data: reviewsData = [] } = useQuery({
@@ -152,6 +280,11 @@ function HomePage() {
         </div>
       </section>
 
+      {/* PRODUCT SHOWCASE */}
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+        <ProductShowcase products={productsData} />
+      </section>
+
       {/* FEATURES */}
       <section className="mx-auto max-w-7xl px-4 py-28 sm:px-6">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
@@ -175,45 +308,6 @@ function HomePage() {
               </GlassCard>
             </motion.div>
           ))}
-        </div>
-      </section>
-
-      {/* PRODUCTS */}
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-        <div className="flex items-end justify-between">
-          <div>
-            <h2 className="text-3xl font-bold sm:text-4xl">Trending products</h2>
-            <p className="mt-2 text-neutral-400">Hand-picked from our marketplace.</p>
-          </div>
-          <Link to="/marketplace" className="hidden items-center gap-1 text-sm font-medium text-primary hover:text-neon sm:inline-flex">
-            View all <ArrowRight size={14} />
-          </Link>
-        </div>
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {productsData.slice(0, 4).map((p: { id: number; name: string; status?: boolean; category?: { name?: string }; price: number }, i: number) => (
-            <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
-              <GlassCard className="group overflow-hidden">
-                <div className={`relative flex h-36 items-center justify-center bg-gradient-to-br ${getProductColor(p.id)}`}>
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.12),transparent_70%)]" />
-                  <Sparkles size={44} className="text-neon/80 drop-shadow-lg" />
-                </div>
-                <div className="p-5">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">{p.name}</h3>
-                    <span className="text-[10px] font-bold uppercase text-primary">{p.status ? "Online" : "Update"}</span>
-                  </div>
-                  <div className="mt-1 text-xs text-neutral-500">{p.category?.name || "General"}</div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="font-display text-xl font-bold neon-text">${p.price}</span>
-                    <GlassButton to="/marketplace" size="sm" variant="glass">Buy</GlassButton>
-                  </div>
-                </div>
-              </GlassCard>
-            </motion.div>
-          ))}
-          {productsData.length === 0 && (
-            <div className="col-span-full py-10 text-center text-sm italic text-neutral-500">No products available yet.</div>
-          )}
         </div>
       </section>
 
