@@ -44,7 +44,6 @@ const adminCategories = [
     icon: Package,
     items: [
       { to: "/admin/applications", label: "Applications", icon: AppWindow },
-      { to: "/admin/files", label: "Files", icon: FolderOpen },
     ],
   },
   {

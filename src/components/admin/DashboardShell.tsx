@@ -42,7 +42,6 @@ const adminManagement = [
 
 const adminCatalog = [
   { to: "/admin/applications", icon: AppWindow, label: "Applications", description: "Manage your software" },
-  { to: "/admin/files", icon: FolderOpen, label: "Files", description: "Storage and downloads" },
 ];
 
 const adminSystem = [

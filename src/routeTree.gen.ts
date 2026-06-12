@@ -27,7 +27,6 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminResellersRouteImport } from './routes/admin.resellers'
 import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminLicensesRouteImport } from './routes/admin.licenses'
-import { Route as AdminFilesRouteImport } from './routes/admin.files'
 import { Route as AdminBypassRouteImport } from './routes/admin.bypass'
 import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
@@ -121,11 +120,6 @@ const AdminLicensesRoute = AdminLicensesRouteImport.update({
   path: '/licenses',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminFilesRoute = AdminFilesRouteImport.update({
-  id: '/files',
-  path: '/files',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminBypassRoute = AdminBypassRouteImport.update({
   id: '/bypass',
   path: '/bypass',
@@ -151,7 +145,6 @@ export interface FileRoutesByFullPath {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/bypass': typeof AdminBypassRoute
-  '/admin/files': typeof AdminFilesRoute
   '/admin/licenses': typeof AdminLicensesRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/resellers': typeof AdminResellersRoute
@@ -171,7 +164,6 @@ export interface FileRoutesByTo {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/bypass': typeof AdminBypassRoute
-  '/admin/files': typeof AdminFilesRoute
   '/admin/licenses': typeof AdminLicensesRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/resellers': typeof AdminResellersRoute
@@ -196,7 +188,6 @@ export interface FileRoutesById {
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/bypass': typeof AdminBypassRoute
-  '/admin/files': typeof AdminFilesRoute
   '/admin/licenses': typeof AdminLicensesRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/resellers': typeof AdminResellersRoute
@@ -222,7 +213,6 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/bypass'
-    | '/admin/files'
     | '/admin/licenses'
     | '/admin/logs'
     | '/admin/resellers'
@@ -242,7 +232,6 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/bypass'
-    | '/admin/files'
     | '/admin/licenses'
     | '/admin/logs'
     | '/admin/resellers'
@@ -266,7 +255,6 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/applications'
     | '/admin/bypass'
-    | '/admin/files'
     | '/admin/licenses'
     | '/admin/logs'
     | '/admin/resellers'
@@ -418,13 +406,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLicensesRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/files': {
-      id: '/admin/files'
-      path: '/files'
-      fullPath: '/admin/files'
-      preLoaderRoute: typeof AdminFilesRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/bypass': {
       id: '/admin/bypass'
       path: '/bypass'
@@ -464,7 +445,6 @@ interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminApplicationsRoute: typeof AdminApplicationsRoute
   AdminBypassRoute: typeof AdminBypassRoute
-  AdminFilesRoute: typeof AdminFilesRoute
   AdminLicensesRoute: typeof AdminLicensesRoute
   AdminLogsRoute: typeof AdminLogsRoute
   AdminResellersRoute: typeof AdminResellersRoute
@@ -478,7 +458,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminApplicationsRoute: AdminApplicationsRoute,
   AdminBypassRoute: AdminBypassRoute,
-  AdminFilesRoute: AdminFilesRoute,
   AdminLicensesRoute: AdminLicensesRoute,
   AdminLogsRoute: AdminLogsRoute,
   AdminResellersRoute: AdminResellersRoute,
