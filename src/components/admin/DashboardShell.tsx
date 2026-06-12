@@ -70,7 +70,13 @@ function NavTab({
   onLeave: () => void;
 }) {
   const loc = useLocation();
-  const hasActive = items.some((item) => loc.pathname === item.to || loc.pathname.startsWith(`${item.to}/`));
+  const isPathActive = (targetTo: string) => {
+    if (targetTo === "/admin" || targetTo === "/reseller" || targetTo === "/dashboard") {
+      return loc.pathname === targetTo;
+    }
+    return loc.pathname === targetTo || loc.pathname.startsWith(`${targetTo}/`);
+  };
+  const hasActive = items.some((item) => isPathActive(item.to));
 
   return (
     <div className="relative" onMouseEnter={onHover} onMouseLeave={onLeave}>
@@ -101,8 +107,7 @@ function NavTab({
             <div className="glass-dropdown w-[280px] overflow-hidden rounded-2xl p-1.5">
               <div className="grid gap-0.5">
                 {items.map((item) => {
-                  const isActive =
-                    loc.pathname === item.to || loc.pathname.startsWith(`${item.to}/`);
+                  const isActive = isPathActive(item.to);
                   return (
                     <Link
                       key={item.to}
