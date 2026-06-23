@@ -79,6 +79,7 @@ export const api = {
     createApplication: (data: any) => apiFetch("/admin/applications", { method: "POST", body: JSON.stringify(data) }),
     getResellers: () => apiFetch("/admin/resellers"),
     createReseller: (data: any) => apiFetch("/admin/resellers", { method: "POST", body: JSON.stringify(data) }),
+    updateReseller: (id: number, data: any) => apiFetch(`/admin/resellers/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
     getStats: () => apiFetch("/admin/stats"),
     getUsers: () => apiFetch("/admin/users"),
     getLicenses: (params?: { page?: number; limit?: number; search?: string; status?: string; app_id?: number }) => {
