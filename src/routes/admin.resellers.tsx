@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, DollarSign, Users, Loader2, X } from "lucide-react";
-import { PageHeader, Card, Badge, Btn, StatCard } from "@/components/admin/ui";
+import { PageHeader, Card, Badge, Btn, StatCard, ConfirmModal } from "@/components/admin/ui";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useState } from "react";
