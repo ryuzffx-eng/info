@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader, Card } from "@/components/admin/ui";
+import { PageHeader, Card, Badge } from "@/components/admin/ui";
 import {
   Wallet, CreditCard, Loader2, Check, ArrowRight, ArrowLeft,
-  QrCode, Coins, Copy, RefreshCw, Clock, Zap,
+  QrCode, Coins, Copy, Clock, Zap, Receipt,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -213,6 +213,11 @@ function ResellerTopup() {
   const { data: plans, isLoading: isPlansLoading } = useQuery<any[]>({
     queryKey: ["reseller-topup-plans"],
     queryFn: () => api.reseller.getTopupPlans(),
+  });
+
+  const { data: txs, isLoading: isTxsLoading } = useQuery<any[]>({
+    queryKey: ["reseller-transactions"],
+    queryFn: () => api.reseller.getTransactions(),
   });
 
   useEffect(() => {
@@ -529,6 +534,100 @@ function ResellerTopup() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* ── Transaction History ── */}
+      <TransactionHistory />
+    </div>
+  );
+}
+
+/* ─── Transaction History ─────────────────────────────────── */
+function TransactionHistory() {
+  const { data: txs, isLoading, refetch } = useQuery<any[]>({
+    queryKey: ["reseller-transactions"],
+    queryFn: () => api.reseller.getTransactions(),
+    refetchInterval: 15000,
+  });
+
+  const statusTone = (s: string) =>
+    s === "completed" ? "success" : s === "pending" ? "warning" : "danger";
+
+  return (
+    <div className="pt-2">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="h-7 w-7 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+            <Receipt size={13} className="text-primary" />
+          </div>
+          <div>
+            <h2 className="text-sm font-black text-white uppercase tracking-wide">Transaction History</h2>
+            <p className="text-[10px] text-zinc-600 font-semibold">All your top-up payments</p>
+          </div>
+        </div>
+        <button
+          onClick={() => refetch()}
+          className="text-[10px] font-bold text-zinc-500 hover:text-primary uppercase tracking-widest flex items-center gap-1 transition-colors cursor-pointer"
+        >
+          <Clock size={10} /> Refresh
+        </button>
+      </div>
+
+      <div className="glass-card rounded-2xl overflow-hidden">
+        {isLoading ? (
+          <div className="flex py-12 items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="overflow-x-auto scrollbar-thin">
+            <table className="w-full text-sm">
+              <thead className="text-left text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 border-b border-white/[0.06] bg-white/[0.02]">
+                <tr>
+                  <th className="py-4 px-5">Date</th>
+                  <th className="px-5">Amount</th>
+                  <th className="px-5">Method</th>
+                  <th className="px-5">Status</th>
+                  <th className="px-5">Reference</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.04]">
+                {txs?.map((tx: any) => (
+                  <tr key={tx.id} className="hover:bg-white/[0.01] transition-colors">
+                    <td className="py-3.5 px-5 text-[11px] text-zinc-500 font-semibold font-mono whitespace-nowrap">
+                      {new Date(tx.created_at).toLocaleString()}
+                    </td>
+                    <td className="px-5">
+                      <span className="text-[12px] font-black text-white">${tx.amount?.toFixed(2)}</span>
+                    </td>
+                    <td className="px-5">
+                      <span className="text-[11px] font-bold text-zinc-400">{tx.provider}</span>
+                    </td>
+                    <td className="px-5">
+                      <Badge tone={statusTone(tx.status)} className="font-extrabold uppercase text-[9px] px-2 py-0.5">
+                        {tx.status}
+                      </Badge>
+                    </td>
+                    <td className="px-5 max-w-[160px]">
+                      <span className="text-[9px] font-mono text-zinc-600 truncate block" title={tx.transaction_id}>
+                        {tx.transaction_id || "—"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {(!txs || txs.length === 0) && (
+                  <tr>
+                    <td colSpan={5} className="py-14 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <Receipt size={20} className="text-zinc-700" />
+                        <span className="text-[11px] text-zinc-600 font-semibold">No transactions yet</span>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
