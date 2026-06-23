@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Card, Btn, Badge } from "@/components/admin/ui";
-import { Wallet, CreditCard, Gift, Loader2, Sparkles, Check, ArrowRight, QrCode, Coins, ExternalLink } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Wallet, CreditCard, Gift, Loader2, Sparkles, Check, ArrowRight, ArrowLeft, QrCode, Coins, X } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -247,12 +247,11 @@ function ResellerTopup() {
         </div>
 
         <Card className="relative p-8 md:p-12 overflow-hidden border-primary/20 bg-zinc-950/80 backdrop-blur-md">
-          {/* Top Cancel button */}
           <button 
             onClick={() => setActiveOrder(null)}
             className="absolute left-6 top-6 flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-zinc-500 hover:text-zinc-200 transition-all border-none bg-transparent outline-none cursor-pointer"
           >
-            ← Cancel
+            <ArrowLeft size={11} /> Cancel
           </button>
 
           <div className="flex flex-col items-center text-center mt-4">
