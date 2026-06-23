@@ -17,7 +17,6 @@ const resellerLinks = [
   { to: "/reseller/licenses", label: "Licenses", icon: Key },
   { to: "/reseller/users", label: "Users", icon: Users },
   { to: "/reseller/bypass", label: "Bypass", icon: Shield },
-  { to: "/reseller/logs", label: "Logs", icon: ScrollText },
 ];
 
 const adminCategories = [

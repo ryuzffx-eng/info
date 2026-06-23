@@ -17,7 +17,6 @@ const userNav = [
 
 const resellerDashboardNav = [
   { to: "/reseller", icon: LayoutDashboard, label: "Overview", description: "Reseller dashboard" },
-  { to: "/reseller/logs", icon: ScrollText, label: "Logs", description: "Recent reseller activity" },
 ];
 
 const resellerManagement = [
