@@ -370,8 +370,16 @@ function Licenses() {
                       </div>
                     </td>
                     <td className="px-6">
-                      <div className="font-bold text-foreground/90">
-                        {l.created_by_username || "Admin"}
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="font-bold text-foreground/90">
+                          {l.created_by_username || "Admin"}
+                        </span>
+                        <Badge 
+                          tone={l.created_by_role === "reseller" ? "primary" : "success"} 
+                          className="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5"
+                        >
+                          {l.created_by_role || "admin"}
+                        </Badge>
                       </div>
                     </td>
                     <td className="px-6">
@@ -458,11 +466,21 @@ function Licenses() {
                    </div>
                    <div className="text-[9px] font-bold text-primary uppercase tracking-tighter mt-1">{formatDaysLeft(realExpiry) || "No limit"}</div>
                 </div>
-                <div className="bg-white/[0.02] p-3 rounded-xl border border-white/5">
-                   <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">Created By</div>
-                   <div className="text-xs font-bold text-foreground truncate">
-                     {l.created_by_username || "Admin"}
-                   </div>
+                <div className="bg-white/[0.02] p-3 rounded-xl border border-white/5 flex flex-col justify-between">
+                    <div>
+                      <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Created By</div>
+                      <div className="text-xs font-bold text-foreground truncate">
+                        {l.created_by_username || "Admin"}
+                      </div>
+                    </div>
+                    <div className="mt-1.5">
+                      <Badge 
+                        tone={l.created_by_role === "reseller" ? "primary" : "success"} 
+                        className="text-[8px] font-extrabold uppercase tracking-wider px-1 py-0.5"
+                      >
+                        {l.created_by_role || "admin"}
+                      </Badge>
+                    </div>
                 </div>
                 <div className="bg-white/[0.02] p-3 rounded-xl border border-white/5">
                    <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">Created</div>
@@ -792,7 +810,21 @@ function LicenseInfoModal({ license, onClose, onResetHwid, resetLoading }: { lic
             <InfoItem label="HARDWARE ID (HWID)" value={license.hwid || "Not bound yet"} icon={<Shield size={14} />} mono copyable={!!license.hwid} />
 
             <div className="grid grid-cols-2 gap-4">
-              <InfoItem label="CREATED BY" value={license.created_by_username || "Admin"} icon={<Users size={14} />} />
+              <InfoItem 
+                label="CREATED BY" 
+                value={
+                  <div className="flex items-center gap-1.5">
+                    <span>{license.created_by_username || "Admin"}</span>
+                    <Badge 
+                      tone={license.created_by_role === "reseller" ? "primary" : "success"} 
+                      className="text-[8px] font-extrabold uppercase tracking-wider px-1 py-0.5"
+                    >
+                      {license.created_by_role || "admin"}
+                    </Badge>
+                  </div>
+                } 
+                icon={<Users size={14} />} 
+              />
               <InfoItem label="CREATED ON" value={license.created_at ? new Date(license.created_at).toLocaleDateString() : "N/A"} icon={<Calendar size={14} />} />
             </div>
 
@@ -825,8 +857,7 @@ function LicenseInfoModal({ license, onClose, onResetHwid, resetLoading }: { lic
     </AnimatePresence>
   );
 }
-
-function InfoItem({ label, value, mono, copyable, icon, className }: { label: string; value: string; mono?: boolean; copyable?: boolean; icon?: React.ReactNode; className?: string }) {
+function InfoItem({ label, value, mono, copyable, icon, className }: { label: string; value: React.ReactNode; mono?: boolean; copyable?: boolean; icon?: React.ReactNode; className?: string }) {
   return (
     <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.04]">
       <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60 mb-2">
