@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Pause, Trash2, Copy, Loader2, RefreshCcw, X, ChevronDown, Info, RefreshCw, Check, Calendar, Clock, Shield, Hash, Zap, Activity, Bell, BellOff } from "lucide-react";
+import { Plus, Pause, Trash2, Copy, Loader2, RefreshCcw, X, ChevronDown, Info, RefreshCw, Check, Calendar, Clock, Shield, Hash, Zap, Activity, Bell, BellOff, Users } from "lucide-react";
 import { PageHeader, Card, Badge, Btn, ConfirmModal } from "@/components/admin/ui";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -313,6 +313,7 @@ function Licenses() {
                 <th className="px-6 font-display">Product</th>
                 <th className="px-6 font-display">Status</th>
                 <th className="px-6 font-display">Expiry</th>
+                <th className="px-6 font-display">Created By</th>
                 <th className="px-6 font-display">Created</th>
                 <th className="px-6 text-right font-display">Actions</th>
               </tr>
@@ -366,6 +367,11 @@ function Licenses() {
                           {realExpiry ? new Date(realExpiry).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "Never"}
                         </div>
                         <div className="text-[10px] text-muted-foreground mt-0.5">{formatDaysLeft(realExpiry) || "No limit"}</div>
+                      </div>
+                    </td>
+                    <td className="px-6">
+                      <div className="font-bold text-foreground/90">
+                        {l.created_by_username || "Admin"}
                       </div>
                     </td>
                     <td className="px-6">
@@ -444,18 +450,24 @@ function Licenses() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/[0.02] p-4 rounded-xl border border-white/5">
-                   <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">Expiration</div>
-                   <div className="text-sm font-bold text-foreground">
-                     {realExpiry ? new Date(realExpiry).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "Lifetime"}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white/[0.02] p-3 rounded-xl border border-white/5">
+                   <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">Expiration</div>
+                   <div className="text-xs font-bold text-foreground">
+                     {realExpiry ? new Date(realExpiry).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "Lifetime"}
                    </div>
-                   <div className="text-[10px] font-bold text-primary uppercase tracking-tighter mt-1">{formatDaysLeft(realExpiry) || "No limit"}</div>
+                   <div className="text-[9px] font-bold text-primary uppercase tracking-tighter mt-1">{formatDaysLeft(realExpiry) || "No limit"}</div>
                 </div>
-                <div className="bg-white/[0.02] p-4 rounded-xl border border-white/5">
-                   <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">Created</div>
-                   <div className="text-sm font-bold text-foreground">
-                     {l.created_at ? new Date(l.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "N/A"}
+                <div className="bg-white/[0.02] p-3 rounded-xl border border-white/5">
+                   <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">Created By</div>
+                   <div className="text-xs font-bold text-foreground truncate">
+                     {l.created_by_username || "Admin"}
+                   </div>
+                </div>
+                <div className="bg-white/[0.02] p-3 rounded-xl border border-white/5">
+                   <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">Created</div>
+                   <div className="text-xs font-bold text-foreground">
+                     {l.created_at ? new Date(l.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "N/A"}
                    </div>
                 </div>
               </div>
@@ -780,14 +792,16 @@ function LicenseInfoModal({ license, onClose, onResetHwid, resetLoading }: { lic
             <InfoItem label="HARDWARE ID (HWID)" value={license.hwid || "Not bound yet"} icon={<Shield size={14} />} mono copyable={!!license.hwid} />
 
             <div className="grid grid-cols-2 gap-4">
+              <InfoItem label="CREATED BY" value={license.created_by_username || "Admin"} icon={<Users size={14} />} />
               <InfoItem label="CREATED ON" value={license.created_at ? new Date(license.created_at).toLocaleDateString() : "N/A"} icon={<Calendar size={14} />} />
-              <InfoItem label="DURATION" value={`${license.duration_days} Days`} icon={<Clock size={14} />} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <InfoItem label="LAST USED" value={license.last_used ? new Date(license.last_used).toLocaleDateString() : "Never"} icon={<Activity size={14} />} />
+              <InfoItem label="DURATION" value={`${license.duration_days} Days`} icon={<Clock size={14} />} />
               <InfoItem label="EXPIRY DATE" value={license.expiry ? new Date(license.expiry).toLocaleDateString() : "N/A"} icon={<Calendar size={14} />} />
             </div>
+
+            <InfoItem label="LAST USED" value={license.last_used ? new Date(license.last_used).toLocaleDateString() : "Never"} icon={<Activity size={14} />} />
 
             <div className="pt-4 flex gap-3">
               <button 
