@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Card, Btn, Badge } from "@/components/admin/ui";
-import { Wallet, CreditCard, Gift, Loader2, Sparkles, Check, ArrowRight, QrCode } from "lucide-react";
+import { Wallet, CreditCard, Gift, Loader2, Sparkles, Check, ArrowRight, QrCode, Coins, ExternalLink } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useState, useEffect } from "react";
@@ -29,18 +29,11 @@ function ResellerTopup() {
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState<number>(50);
   const [customAmount, setCustomAmount] = useState<string>("");
-  const [method, setMethod] = useState<"card" | "crypto" | "coupon" | "razorpay">("card");
-  const [couponCode, setCouponCode] = useState("");
+  const [method, setMethod] = useState<"razorpay" | "binance" | "crypto">("razorpay");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Card form states
-  const [cardNumber, setCardNumber] = useState("4111 2222 3333 4444");
-  const [cardExpiry, setCardExpiry] = useState("12/29");
-  const [cardCvv, setCardCvv] = useState("123");
-  const [cardName, setCardName] = useState("Reseller Account");
-
-  // Crypto coin selection
-  const [cryptoCoin, setCryptoCoin] = useState<"BTC" | "LTC" | "USDT">("LTC");
+  // Binance Order state
+  const [binanceOrder, setBinanceOrder] = useState<any>(null);
 
   const { data: profile, isLoading: isProfileLoading } = useQuery({
     queryKey: ["reseller-profile"],
@@ -59,26 +52,6 @@ function ResellerTopup() {
     }
   }, [plans]);
 
-  useEffect(() => {
-    if (profile?.username) {
-      setCardName(profile.username);
-    }
-  }, [profile]);
-
-  const topupMutation = useMutation({
-    mutationFn: (data: { amount: number; payment_method: string; coupon_code?: string }) => api.reseller.topup(data),
-    onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ["reseller-profile"] });
-      toast.success(res.msg || "Top up successful!");
-      setCouponCode("");
-      setIsProcessing(false);
-    },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to process top up");
-      setIsProcessing(false);
-    }
-  });
-
   const handleCheckout = async () => {
     const finalAmount = customAmount ? parseFloat(customAmount) : amount;
     if (isNaN(finalAmount) || finalAmount <= 0) {
@@ -87,20 +60,6 @@ function ResellerTopup() {
     }
 
     setIsProcessing(true);
-
-    if (method === "coupon") {
-      if (!couponCode.trim()) {
-        toast.error("Please enter a coupon code");
-        setIsProcessing(false);
-        return;
-      }
-      topupMutation.mutate({
-        amount: finalAmount,
-        payment_method: "coupon",
-        coupon_code: couponCode
-      });
-      return;
-    }
 
     if (method === "razorpay") {
       try {
@@ -160,13 +119,41 @@ function ResellerTopup() {
       return;
     }
 
-    // Simulate verification delay for premium look
-    setTimeout(() => {
-      topupMutation.mutate({
-        amount: finalAmount,
-        payment_method: method
+    if (method === "binance") {
+      try {
+        const orderData = await api.reseller.createBinanceOrder(finalAmount);
+        setBinanceOrder(orderData);
+        window.open(orderData.checkout_url, "_blank");
+        toast.success("Binance Pay checkout page opened. Click 'Verify Payment' below once paid.");
+      } catch (err: any) {
+        toast.error(err.message || "Failed to create Binance Pay order");
+      } finally {
+        setIsProcessing(false);
+      }
+      return;
+    }
+  };
+
+  const handleVerifyBinance = async () => {
+    if (!binanceOrder) {
+      toast.error("No active Binance order to verify");
+      return;
+    }
+    setIsProcessing(true);
+    const finalAmount = customAmount ? parseFloat(customAmount) : amount;
+    try {
+      const verifyRes = await api.reseller.verifyBinancePayment({
+        merchant_trade_no: binanceOrder.merchant_trade_no,
+        amount: finalAmount
       });
-    }, 2000);
+      queryClient.invalidateQueries({ queryKey: ["reseller-profile"] });
+      toast.success(verifyRes.msg || "Top up successful!");
+      setBinanceOrder(null);
+    } catch (err: any) {
+      toast.error(err.message || "Payment not verified yet. Make sure payment was processed on Binance Pay.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (isProfileLoading || isPlansLoading) {
@@ -275,27 +262,9 @@ function ResellerTopup() {
             </div>
 
             {/* Tabs */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1 bg-white/[0.02] rounded-xl border border-white/5">
+            <div className="grid grid-cols-3 gap-2 p-1 bg-white/[0.02] rounded-xl border border-white/5">
               <button
-                onClick={() => setMethod("card")}
-                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-bold transition-all ${
-                  method === "card" ? "bg-primary text-black" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <CreditCard size={14} />
-                Credit Card
-              </button>
-              <button
-                onClick={() => setMethod("crypto")}
-                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-bold transition-all ${
-                  method === "crypto" ? "bg-primary text-black" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <QrCode size={14} />
-                Crypto
-              </button>
-              <button
-                onClick={() => setMethod("razorpay")}
+                onClick={() => { setMethod("razorpay"); setBinanceOrder(null); }}
                 className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-bold transition-all ${
                   method === "razorpay" ? "bg-primary text-black" : "text-muted-foreground hover:text-foreground"
                 }`}
@@ -304,128 +273,27 @@ function ResellerTopup() {
                 Razorpay
               </button>
               <button
-                onClick={() => setMethod("coupon")}
+                onClick={() => { setMethod("binance"); setBinanceOrder(null); }}
                 className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-bold transition-all ${
-                  method === "coupon" ? "bg-primary text-black" : "text-muted-foreground hover:text-foreground"
+                  method === "binance" ? "bg-primary text-black" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <Gift size={14} />
-                Coupon
+                <Coins size={14} />
+                Binance Pay
+              </button>
+              <button
+                onClick={() => { setMethod("crypto"); setBinanceOrder(null); }}
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-bold transition-all ${
+                  method === "crypto" ? "bg-primary text-black" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <QrCode size={14} />
+                Crypto Transfer
               </button>
             </div>
 
             {/* Form Fields */}
             <AnimatePresence mode="wait">
-              {method === "card" && (
-                <motion.div
-                  key="card"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-4"
-                >
-                  <div className="p-5 rounded-2xl bg-gradient-to-r from-zinc-900 to-black border border-white/10 relative overflow-hidden">
-                    <div className="absolute right-4 top-4 text-xs font-black italic tracking-widest text-primary/30 uppercase">Visa Platinum</div>
-                    <div className="space-y-6">
-                      <div className="text-xs font-mono font-bold tracking-widest text-white/50">{cardNumber}</div>
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="text-[8px] uppercase tracking-wider text-muted-foreground/60">Card Holder</div>
-                          <div className="text-xs font-bold text-white uppercase">{cardName || "Your Name"}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-[8px] uppercase tracking-wider text-muted-foreground/60">Expires</div>
-                          <div className="text-xs font-bold text-white">{cardExpiry}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-muted-foreground uppercase">Cardholder Name</label>
-                      <input
-                        type="text"
-                        value={cardName}
-                        onChange={(e) => setCardName(e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.02] p-3 text-xs outline-none focus:border-primary/50 text-white font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-muted-foreground uppercase">Card Number</label>
-                      <input
-                        type="text"
-                        value={cardNumber}
-                        onChange={(e) => setCardNumber(e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.02] p-3 text-xs outline-none focus:border-primary/50 text-white font-bold"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-muted-foreground uppercase">Expiry Date</label>
-                      <input
-                        type="text"
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(e.target.value)}
-                        placeholder="MM/YY"
-                        className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.02] p-3 text-xs outline-none focus:border-primary/50 text-white font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-muted-foreground uppercase">CVV</label>
-                      <input
-                        type="text"
-                        value={cardCvv}
-                        onChange={(e) => setCardCvv(e.target.value)}
-                        maxLength={3}
-                        className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.02] p-3 text-xs outline-none focus:border-primary/50 text-white font-bold"
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {method === "crypto" && (
-                <motion.div
-                  key="crypto"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-4"
-                >
-                  <div className="flex gap-2">
-                    {["LTC", "BTC", "USDT"].map((coin) => (
-                      <button
-                        key={coin}
-                        onClick={() => setCryptoCoin(coin as any)}
-                        className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
-                          cryptoCoin === coin
-                             ? "border-primary bg-primary/10 text-primary"
-                             : "border-white/5 bg-white/[0.02] text-muted-foreground hover:text-white"
-                        }`}
-                      >
-                        {coin}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.01]">
-                    <div className="h-20 w-20 shrink-0 bg-white rounded-lg flex items-center justify-center p-1">
-                      <QrCode className="text-black h-full w-full" />
-                    </div>
-                    <div className="space-y-1.5 min-w-0">
-                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Deposit Address</div>
-                      <code className="block text-xs font-mono font-bold text-white bg-black/40 p-2 rounded border border-white/5 overflow-x-auto select-all">
-                        {cryptoCoin === "LTC" ? "LhcYcMv6bU2c943LmWx9VnQ..." : cryptoCoin === "BTC" ? "bc1qxy2kg3ut5xg7z3j23..." : "0x71C5681E616B78d910..."}
-                      </code>
-                      <div className="text-[10px] text-zinc-500 font-bold italic">Credits will be added automatically upon payment detection.</div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
               {method === "razorpay" && (
                 <motion.div
                   key="razorpay"
@@ -465,25 +333,141 @@ function ResellerTopup() {
                 </motion.div>
               )}
 
-              {method === "coupon" && (
+              {method === "binance" && (
                 <motion.div
-                  key="coupon"
+                  key="binance"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   className="space-y-4"
                 >
-                  <div>
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Redeem Code</label>
-                    <input
-                      type="text"
-                      placeholder="CANNIBAL-XXXXXX"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.02] p-3 text-sm outline-none focus:border-primary/50 text-white font-mono uppercase tracking-wider"
-                    />
-                    <div className="text-[10px] text-muted-foreground/60 mt-1.5 font-bold italic">
-                      Coupon codes give immediate credit. Tip: Use <code className="text-primary select-all">CANNIBAL-{activeAmount || 50}</code> as a topup coupon to credit ${activeAmount || 50.00}.
+                  <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-950/30 via-zinc-900 to-black border border-amber-500/20 relative overflow-hidden">
+                    <div className="absolute right-4 top-4 text-xs font-black italic tracking-widest text-amber-400/30 uppercase">Binance Pay Secure</div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                        <span className="text-xs font-semibold text-zinc-300">Fast USDT Gate Checkout</span>
+                      </div>
+                      
+                      {!binanceOrder ? (
+                        <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-3">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">USD Cost</span>
+                            <span className="font-bold text-white">${activeAmount.toFixed(2)} USD</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">Currency</span>
+                            <span className="font-bold text-amber-400">USDT (1:1 with USD)</span>
+                          </div>
+                          <div className="border-t border-white/5 my-2 pt-2 flex justify-between items-center text-sm font-bold">
+                            <span className="text-amber-400">Total USDT</span>
+                            <span className="text-white font-extrabold">{activeAmount.toFixed(2)} USDT</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-4">
+                          <div className="text-xs text-zinc-300 font-bold">Order created! Click the button below to pay, then verify:</div>
+                          
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <a
+                              href={binanceOrder.checkout_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex-1 py-3 px-4 rounded-xl text-center text-xs font-bold bg-amber-500 text-black hover:bg-amber-400 transition-all flex items-center justify-center gap-2"
+                            >
+                              <ExternalLink size={14} />
+                              Open Payment Page
+                            </a>
+                            <button
+                              onClick={handleVerifyBinance}
+                              disabled={isProcessing}
+                              className="flex-1 py-3 px-4 rounded-xl text-center text-xs font-bold bg-zinc-800 text-white border border-white/10 hover:bg-zinc-700 disabled:opacity-50 transition-all"
+                            >
+                              {isProcessing ? "Verifying..." : "Verify Payment"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="text-[10px] text-zinc-400 leading-relaxed font-medium">
+                        {!binanceOrder 
+                          ? "By clicking 'Complete Top Up', we will create a Binance Pay payment request and open the checkout page in a new window/tab."
+                          : "Once you have completed the payment on the Binance page, click 'Verify Payment' to credit your reseller balance immediately."}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {method === "crypto" && (
+                <motion.div
+                  key="crypto"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-4"
+                >
+                  <div className="p-5 rounded-2xl bg-gradient-to-r from-teal-950/20 via-zinc-900 to-black border border-teal-500/20 relative overflow-hidden">
+                    <div className="absolute right-4 top-4 text-xs font-black italic tracking-widest text-teal-400/30 uppercase">Manual Transfer</div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
+                        <span className="text-xs font-semibold text-zinc-300">USDT Wallet Addresses</span>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="bg-black/30 rounded-xl p-3 border border-white/5 flex items-center justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <span className="text-[9px] font-bold text-teal-400 uppercase tracking-widest block">USDT (TRC20)</span>
+                            <code className="text-xs font-mono font-bold text-white block truncate select-all">TT2fYWs2gfUbbYmzU3wdUps6ECqGPUt7zP</code>
+                          </div>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText("TT2fYWs2gfUbbYmzU3wdUps6ECqGPUt7zP");
+                              toast.success("TRC20 Address copied!");
+                            }}
+                            className="py-1.5 px-3 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-white hover:bg-white/10 transition-all shrink-0"
+                          >
+                            Copy
+                          </button>
+                        </div>
+
+                        <div className="bg-black/30 rounded-xl p-3 border border-white/5 flex items-center justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <span className="text-[9px] font-bold text-teal-400 uppercase tracking-widest block">USDT (ERC20)</span>
+                            <code className="text-xs font-mono font-bold text-white block truncate select-all">0x680e71e7733a8333f1a8dca2532a4d3f87724e90</code>
+                          </div>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText("0x680e71e7733a8333f1a8dca2532a4d3f87724e90");
+                              toast.success("ERC20 Address copied!");
+                            }}
+                            className="py-1.5 px-3 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-white hover:bg-white/10 transition-all shrink-0"
+                          >
+                            Copy
+                          </button>
+                        </div>
+
+                        <div className="bg-black/30 rounded-xl p-3 border border-white/5 flex items-center justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <span className="text-[9px] font-bold text-teal-400 uppercase tracking-widest block">USDT (BEP20)</span>
+                            <code className="text-xs font-mono font-bold text-white block truncate select-all">0x680e71e7733a8333f1a8dca2532a4d3f87724e90</code>
+                          </div>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText("0x680e71e7733a8333f1a8dca2532a4d3f87724e90");
+                              toast.success("BEP20 Address copied!");
+                            }}
+                            className="py-1.5 px-3 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-white hover:bg-white/10 transition-all shrink-0"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="text-[10px] text-zinc-400 leading-relaxed font-semibold italic text-center p-2 border border-teal-500/10 rounded-xl bg-teal-500/[0.02]">
+                        ⚠️ This is a manual transfer. After completing the payment, please contact the administrator with your transaction ID, hash, or receipt to verify and credit your reseller balance.
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -503,23 +487,32 @@ function ResellerTopup() {
                 </div>
               </div>
 
-              <Btn
-                disabled={isProcessing || activeAmount <= 0}
-                onClick={handleCheckout}
-                className="w-full sm:w-auto px-10 py-5 justify-center"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin mr-2" />
-                    Processing Payment...
-                  </>
-                ) : (
-                  <>
-                    Complete Top Up
-                    <ArrowRight size={14} className="ml-1" />
-                  </>
-                )}
-              </Btn>
+              {method !== "crypto" ? (
+                <Btn
+                  disabled={isProcessing || activeAmount <= 0}
+                  onClick={handleCheckout}
+                  className="w-full sm:w-auto px-10 py-5 justify-center"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin mr-2" />
+                      Processing Payment...
+                    </>
+                  ) : (
+                    <>
+                      {method === "binance" && binanceOrder ? "Pay on Binance Page" : "Complete Top Up"}
+                      <ArrowRight size={14} className="ml-1" />
+                    </>
+                  )}
+                </Btn>
+              ) : (
+                <Btn
+                  disabled
+                  className="w-full sm:w-auto px-10 py-5 justify-center opacity-60 cursor-not-allowed bg-zinc-800 border border-white/10 text-zinc-400 hover:bg-zinc-800"
+                >
+                  Manual Transfer Mode
+                </Btn>
+              )}
             </div>
           </Card>
         </div>

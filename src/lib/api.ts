@@ -162,6 +162,8 @@ export const api = {
     getTopupPlans: () => apiFetch("/reseller/topup/plans"),
     createRazorpayOrder: (amount: number) => apiFetch("/reseller/topup/razorpay/create-order", { method: "POST", body: JSON.stringify({ amount }) }),
     verifyRazorpayPayment: (data: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string; amount: number }) => apiFetch("/reseller/topup/razorpay/verify", { method: "POST", body: JSON.stringify(data) }),
+    createBinanceOrder: (amount: number) => apiFetch("/reseller/topup/binance/create-order", { method: "POST", body: JSON.stringify({ amount }) }),
+    verifyBinancePayment: (data: { merchant_trade_no: string; amount: number }) => apiFetch("/reseller/topup/binance/verify", { method: "POST", body: JSON.stringify(data) }),
   },
   bypass: {
     getStats: () => apiFetch("/bypass/stats"),
