@@ -160,6 +160,8 @@ export const api = {
     togglePauseLicense: (id: number) => apiFetch(`/reseller/licenses/${id}/toggle-pause`, { method: "PATCH" }),
     topup: (data: { amount: number; payment_method: string; coupon_code?: string }) => apiFetch("/reseller/topup", { method: "POST", body: JSON.stringify(data) }),
     getTopupPlans: () => apiFetch("/reseller/topup/plans"),
+    createRazorpayOrder: (amount: number) => apiFetch("/reseller/topup/razorpay/create-order", { method: "POST", body: JSON.stringify({ amount }) }),
+    verifyRazorpayPayment: (data: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string; amount: number }) => apiFetch("/reseller/topup/razorpay/verify", { method: "POST", body: JSON.stringify(data) }),
   },
   bypass: {
     getStats: () => apiFetch("/bypass/stats"),

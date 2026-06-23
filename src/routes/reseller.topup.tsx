@@ -11,11 +11,25 @@ export const Route = createFileRoute("/reseller/topup")({ component: ResellerTop
 
 const PRESET_AMOUNTS = [10, 25, 50, 100, 250];
 
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if ((window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 function ResellerTopup() {
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState<number>(50);
   const [customAmount, setCustomAmount] = useState<string>("");
-  const [method, setMethod] = useState<"card" | "crypto" | "coupon">("card");
+  const [method, setMethod] = useState<"card" | "crypto" | "coupon" | "razorpay">("card");
   const [couponCode, setCouponCode] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -65,7 +79,7 @@ function ResellerTopup() {
     }
   });
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     const finalAmount = customAmount ? parseFloat(customAmount) : amount;
     if (isNaN(finalAmount) || finalAmount <= 0) {
       toast.error("Please enter a valid positive amount");
@@ -85,6 +99,64 @@ function ResellerTopup() {
         payment_method: "coupon",
         coupon_code: couponCode
       });
+      return;
+    }
+
+    if (method === "razorpay") {
+      try {
+        const loaded = await loadRazorpayScript();
+        if (!loaded) {
+          toast.error("Failed to load Razorpay SDK. Please check your internet connection.");
+          setIsProcessing(false);
+          return;
+        }
+
+        const orderData = await api.reseller.createRazorpayOrder(finalAmount);
+        
+        const options = {
+          key: orderData.key_id,
+          amount: orderData.amount,
+          currency: orderData.currency,
+          name: "Emerite Store",
+          description: `Top up reseller account with $${finalAmount.toFixed(2)}`,
+          order_id: orderData.order_id,
+          handler: async function (response: any) {
+            setIsProcessing(true);
+            try {
+              const verifyRes = await api.reseller.verifyRazorpayPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                amount: finalAmount
+              });
+              queryClient.invalidateQueries({ queryKey: ["reseller-profile"] });
+              toast.success(verifyRes.msg || "Top up successful!");
+            } catch (err: any) {
+              toast.error(err.message || "Payment verification failed");
+            } finally {
+              setIsProcessing(false);
+            }
+          },
+          prefill: {
+            name: profile?.username || "",
+            email: profile?.email || "",
+          },
+          theme: {
+            color: "#3B82F6",
+          },
+          modal: {
+            ondismiss: function () {
+              setIsProcessing(false);
+            }
+          }
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      } catch (err: any) {
+        toast.error(err.message || "Failed to create Razorpay order");
+        setIsProcessing(false);
+      }
       return;
     }
 
@@ -203,7 +275,7 @@ function ResellerTopup() {
             </div>
 
             {/* Tabs */}
-            <div className="grid grid-cols-3 gap-2 p-1 bg-white/[0.02] rounded-xl border border-white/5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1 bg-white/[0.02] rounded-xl border border-white/5">
               <button
                 onClick={() => setMethod("card")}
                 className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-bold transition-all ${
@@ -221,6 +293,15 @@ function ResellerTopup() {
               >
                 <QrCode size={14} />
                 Crypto
+              </button>
+              <button
+                onClick={() => setMethod("razorpay")}
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-bold transition-all ${
+                  method === "razorpay" ? "bg-primary text-black" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <CreditCard size={14} />
+                Razorpay
               </button>
               <button
                 onClick={() => setMethod("coupon")}
@@ -321,8 +402,8 @@ function ResellerTopup() {
                         onClick={() => setCryptoCoin(coin as any)}
                         className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
                           cryptoCoin === coin
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-white/5 bg-white/[0.02] text-muted-foreground hover:text-white"
+                             ? "border-primary bg-primary/10 text-primary"
+                             : "border-white/5 bg-white/[0.02] text-muted-foreground hover:text-white"
                         }`}
                       >
                         {coin}
@@ -340,6 +421,45 @@ function ResellerTopup() {
                         {cryptoCoin === "LTC" ? "LhcYcMv6bU2c943LmWx9VnQ..." : cryptoCoin === "BTC" ? "bc1qxy2kg3ut5xg7z3j23..." : "0x71C5681E616B78d910..."}
                       </code>
                       <div className="text-[10px] text-zinc-500 font-bold italic">Credits will be added automatically upon payment detection.</div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {method === "razorpay" && (
+                <motion.div
+                  key="razorpay"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-4"
+                >
+                  <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-950/40 via-zinc-900 to-black border border-blue-500/20 relative overflow-hidden">
+                    <div className="absolute right-4 top-4 text-xs font-black italic tracking-widest text-blue-400/30 uppercase">Razorpay Secure</div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                        <span className="text-xs font-semibold text-zinc-300">UPI / Netbanking / Cards Checkout</span>
+                      </div>
+                      
+                      <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-3">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Exchange Rate</span>
+                          <span className="font-bold text-white">1 USD = 100.00 INR</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">USD Amount</span>
+                          <span className="font-bold text-white">${activeAmount.toFixed(2)} USD</span>
+                        </div>
+                        <div className="border-t border-white/5 my-2 pt-2 flex justify-between items-center text-sm font-bold">
+                          <span className="text-blue-400">Total in INR</span>
+                          <span className="text-white font-extrabold">₹{(activeAmount * 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR</span>
+                        </div>
+                      </div>
+
+                      <div className="text-[10px] text-zinc-400 leading-relaxed font-medium">
+                        By clicking "Complete Top Up", a secure Razorpay checkout modal will be initiated. You can pay using your local currency (INR) through UPI, Netbanking, or standard Cards. Credits will be added to your balance immediately after verification.
+                      </div>
                     </div>
                   </div>
                 </motion.div>
