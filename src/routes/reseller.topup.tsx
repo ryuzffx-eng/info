@@ -123,8 +123,7 @@ function ResellerTopup() {
       try {
         const orderData = await api.reseller.createBinanceOrder(finalAmount);
         setBinanceOrder(orderData);
-        window.open(orderData.checkout_url, "_blank");
-        toast.success("Binance Pay checkout page opened. Click 'Verify Payment' below once paid.");
+        toast.success("Binance Pay transfer initialized! Please pay to the UID or scan the QR code below.");
       } catch (err: any) {
         toast.error(err.message || "Failed to create Binance Pay order");
       } finally {
@@ -140,17 +139,15 @@ function ResellerTopup() {
       return;
     }
     setIsProcessing(true);
-    const finalAmount = customAmount ? parseFloat(customAmount) : amount;
     try {
       const verifyRes = await api.reseller.verifyBinancePayment({
-        merchant_trade_no: binanceOrder.merchant_trade_no,
-        amount: finalAmount
+        merchant_trade_no: binanceOrder.order_id,
+        amount: binanceOrder.amount
       });
-      queryClient.invalidateQueries({ queryKey: ["reseller-profile"] });
-      toast.success(verifyRes.msg || "Top up successful!");
+      toast.success(verifyRes.msg || "Verification request submitted successfully!");
       setBinanceOrder(null);
     } catch (err: any) {
-      toast.error(err.message || "Payment not verified yet. Make sure payment was processed on Binance Pay.");
+      toast.error(err.message || "Failed to submit verification request.");
     } finally {
       setIsProcessing(false);
     }
@@ -346,7 +343,7 @@ function ResellerTopup() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                        <span className="text-xs font-semibold text-zinc-300">Fast USDT Gate Checkout</span>
+                        <span className="text-xs font-semibold text-zinc-300">C2C Pay to Binance UID</span>
                       </div>
                       
                       {!binanceOrder ? (
@@ -365,34 +362,44 @@ function ResellerTopup() {
                           </div>
                         </div>
                       ) : (
-                        <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-4">
-                          <div className="text-xs text-zinc-300 font-bold">Order created! Click the button below to pay, then verify:</div>
-                          
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <a
-                              href={binanceOrder.checkout_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="flex-1 py-3 px-4 rounded-xl text-center text-xs font-bold bg-amber-500 text-black hover:bg-amber-400 transition-all flex items-center justify-center gap-2"
-                            >
-                              <ExternalLink size={14} />
-                              Open Payment Page
-                            </a>
-                            <button
-                              onClick={handleVerifyBinance}
-                              disabled={isProcessing}
-                              className="flex-1 py-3 px-4 rounded-xl text-center text-xs font-bold bg-zinc-800 text-white border border-white/10 hover:bg-zinc-700 disabled:opacity-50 transition-all"
-                            >
-                              {isProcessing ? "Verifying..." : "Verify Payment"}
-                            </button>
+                        <div className="space-y-4">
+                          <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl border border-white/5 bg-black/40">
+                            <div className="h-24 w-24 shrink-0 bg-white rounded-lg flex items-center justify-center p-1 border border-white/10">
+                              <img src={binanceOrder.qr_url} alt="Binance QR" className="h-full w-full object-contain" />
+                            </div>
+                            <div className="space-y-2 min-w-0 flex-1">
+                              <div>
+                                <span className="text-[9px] font-bold text-amber-400 uppercase tracking-widest block">Binance UID</span>
+                                <code className="text-xs font-mono font-bold text-white block select-all">{binanceOrder.wallet_address}</code>
+                              </div>
+                              <div>
+                                <span className="text-[9px] font-bold text-amber-400 uppercase tracking-widest block">Amount to Send</span>
+                                <span className="text-xs font-bold text-white block">{binanceOrder.amount.toFixed(4)} USDT</span>
+                              </div>
+                            </div>
                           </div>
+                          
+                          <button
+                            onClick={handleVerifyBinance}
+                            disabled={isProcessing}
+                            className="w-full py-3 px-4 rounded-xl text-center text-xs font-bold bg-amber-500 text-black hover:bg-amber-400 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                          >
+                            {isProcessing ? (
+                              <>
+                                <Loader2 size={14} className="animate-spin" />
+                                Submitting Verification...
+                              </>
+                            ) : (
+                              "Submit Payment Verification"
+                            )}
+                          </button>
                         </div>
                       )}
 
                       <div className="text-[10px] text-zinc-400 leading-relaxed font-medium">
                         {!binanceOrder 
-                          ? "By clicking 'Complete Top Up', we will create a Binance Pay payment request and open the checkout page in a new window/tab."
-                          : "Once you have completed the payment on the Binance page, click 'Verify Payment' to credit your reseller balance immediately."}
+                          ? "By clicking 'Complete Top Up', we will generate a unique payment record with a micro-offset to help verify your payment."
+                          : "Please send the exact USDT amount shown above to the Binance UID. Once transferred, click 'Submit Payment Verification'. Admin will verify manually."}
                       </div>
                     </div>
                   </div>
@@ -487,7 +494,7 @@ function ResellerTopup() {
                 </div>
               </div>
 
-              {method !== "crypto" ? (
+              {method === "razorpay" || (method === "binance" && !binanceOrder) ? (
                 <Btn
                   disabled={isProcessing || activeAmount <= 0}
                   onClick={handleCheckout}
@@ -496,11 +503,11 @@ function ResellerTopup() {
                   {isProcessing ? (
                     <>
                       <Loader2 size={14} className="animate-spin mr-2" />
-                      Processing Payment...
+                      Processing...
                     </>
                   ) : (
                     <>
-                      {method === "binance" && binanceOrder ? "Pay on Binance Page" : "Complete Top Up"}
+                      Complete Top Up
                       <ArrowRight size={14} className="ml-1" />
                     </>
                   )}
@@ -510,7 +517,7 @@ function ResellerTopup() {
                   disabled
                   className="w-full sm:w-auto px-10 py-5 justify-center opacity-60 cursor-not-allowed bg-zinc-800 border border-white/10 text-zinc-400 hover:bg-zinc-800"
                 >
-                  Manual Transfer Mode
+                  {method === "binance" ? "Verification Pending Above" : "Manual Transfer Mode"}
                 </Btn>
               )}
             </div>
