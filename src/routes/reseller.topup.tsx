@@ -3,7 +3,7 @@ import { PageHeader, Card, Btn, Badge } from "@/components/admin/ui";
 import { Wallet, CreditCard, Gift, Loader2, Sparkles, Check, ArrowRight, QrCode } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -32,6 +32,18 @@ function ResellerTopup() {
     queryKey: ["reseller-profile"],
     queryFn: () => api.reseller.getProfile(),
   });
+
+  const { data: plans, isLoading: isPlansLoading } = useQuery<any[]>({
+    queryKey: ["reseller-topup-plans"],
+    queryFn: () => api.reseller.getTopupPlans(),
+  });
+
+  useEffect(() => {
+    if (plans && plans.length > 0 && amount === 50 && !customAmount) {
+      const defaultPlan = plans.find(p => p.amount === 50) || plans[0];
+      setAmount(defaultPlan.amount);
+    }
+  }, [plans]);
 
   const topupMutation = useMutation({
     mutationFn: (data: { amount: number; payment_method: string; coupon_code?: string }) => api.reseller.topup(data),
@@ -79,7 +91,7 @@ function ResellerTopup() {
     }, 2000);
   };
 
-  if (isProfileLoading) {
+  if (isProfileLoading || isPlansLoading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -88,6 +100,10 @@ function ResellerTopup() {
   }
 
   const activeAmount = customAmount ? parseFloat(customAmount) || 0 : amount;
+
+  // Find credits matching active preset plan, or default to 1:1 for custom
+  const selectedPlan = plans?.find(p => p.amount === activeAmount);
+  const activeCredits = selectedPlan ? selectedPlan.credits : activeAmount;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -118,22 +134,43 @@ function ResellerTopup() {
           <Card className="space-y-4">
             <h3 className="font-bold text-sm text-foreground uppercase tracking-wider">Select Package</h3>
             <div className="grid grid-cols-2 gap-2">
-              {PRESET_AMOUNTS.map((amt) => (
-                <button
-                  key={amt}
-                  onClick={() => {
-                    setAmount(amt);
-                    setCustomAmount("");
-                  }}
-                  className={`py-3 px-2 rounded-xl text-center border font-bold text-sm transition-all ${
-                    !customAmount && amount === amt
-                      ? "border-primary bg-primary/10 text-primary shadow-[0_0_15px_var(--primary-glow)]"
-                      : "border-white/5 bg-white/[0.02] text-muted-foreground hover:border-white/20 hover:text-foreground"
-                  }`}
-                >
-                  ${amt}
-                </button>
-              ))}
+              {plans && plans.length > 0 ? (
+                plans.map((plan: any) => (
+                  <button
+                    key={plan.id}
+                    onClick={() => {
+                      setAmount(plan.amount);
+                      setCustomAmount("");
+                    }}
+                    className={`py-3 px-2 rounded-xl text-center border transition-all flex flex-col items-center justify-center ${
+                      !customAmount && amount === plan.amount
+                        ? "border-primary bg-primary/10 text-primary shadow-[0_0_15px_var(--primary-glow)]"
+                        : "border-white/5 bg-white/[0.02] text-muted-foreground hover:border-white/20 hover:text-foreground"
+                    }`}
+                    title={plan.description || ""}
+                  >
+                    <span className="font-extrabold text-sm">${plan.amount}</span>
+                    <span className="text-[9px] font-black uppercase tracking-wider text-primary mt-0.5">{plan.credits} Credits</span>
+                  </button>
+                ))
+              ) : (
+                PRESET_AMOUNTS.map((amt) => (
+                  <button
+                    key={amt}
+                    onClick={() => {
+                      setAmount(amt);
+                      setCustomAmount("");
+                    }}
+                    className={`py-3 px-2 rounded-xl text-center border font-bold text-sm transition-all ${
+                      !customAmount && amount === amt
+                        ? "border-primary bg-primary/10 text-primary shadow-[0_0_15px_var(--primary-glow)]"
+                        : "border-white/5 bg-white/[0.02] text-muted-foreground hover:border-white/20 hover:text-foreground"
+                    }`}
+                  >
+                    ${amt}
+                  </button>
+                ))
+              )}
             </div>
             <div className="relative">
               <input
@@ -329,9 +366,15 @@ function ResellerTopup() {
 
             {/* Total display & submit button */}
             <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Checkout Total</div>
-                <div className="text-2xl font-black text-white">${activeAmount.toFixed(2)}</div>
+              <div className="flex items-center gap-6">
+                <div>
+                  <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Checkout Total</div>
+                  <div className="text-2xl font-black text-white">${activeAmount.toFixed(2)}</div>
+                </div>
+                <div className="border-l border-white/10 pl-6">
+                  <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Credits Received</div>
+                  <div className="text-2xl font-black text-primary">{activeCredits} Credits</div>
+                </div>
               </div>
 
               <Btn

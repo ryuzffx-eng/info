@@ -136,6 +136,9 @@ export const api = {
       return apiFetch(`/admin/telemetry?${query.toString()}`);
     },
     deleteTelemetry: (id: number) => apiFetch(`/admin/telemetry/${id}`, { method: "DELETE" }),
+    getTopupPlans: () => apiFetch("/admin/topup/plans"),
+    createTopupPlan: (data: { name: string; amount: number; credits: number; description?: string }) => apiFetch("/admin/topup/plans", { method: "POST", body: JSON.stringify(data) }),
+    deleteTopupPlan: (id: number) => apiFetch(`/admin/topup/plans/${id}`, { method: "DELETE" }),
   },
   reseller: {
     generateLicenses: (data: any) => apiFetch("/reseller/generate-licenses", { method: "POST", body: JSON.stringify(data) }),
@@ -156,6 +159,7 @@ export const api = {
     resetLicenseHwid: (id: number) => apiFetch(`/reseller/licenses/${id}/reset-hwid`, { method: "PATCH" }),
     togglePauseLicense: (id: number) => apiFetch(`/reseller/licenses/${id}/toggle-pause`, { method: "PATCH" }),
     topup: (data: { amount: number; payment_method: string; coupon_code?: string }) => apiFetch("/reseller/topup", { method: "POST", body: JSON.stringify(data) }),
+    getTopupPlans: () => apiFetch("/reseller/topup/plans"),
   },
   bypass: {
     getStats: () => apiFetch("/bypass/stats"),

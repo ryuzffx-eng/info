@@ -21,6 +21,7 @@ import { Route as ResellerTopupRouteImport } from './routes/reseller.topup'
 import { Route as ResellerLicensesRouteImport } from './routes/reseller.licenses'
 import { Route as ResellerBypassRouteImport } from './routes/reseller.bypass'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminTopupRouteImport } from './routes/admin.topup'
 import { Route as AdminTelemetryRouteImport } from './routes/admin.telemetry'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminResellersRouteImport } from './routes/admin.resellers'
@@ -89,6 +90,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTopupRoute = AdminTopupRouteImport.update({
+  id: '/topup',
+  path: '/topup',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminTelemetryRoute = AdminTelemetryRouteImport.update({
   id: '/telemetry',
   path: '/telemetry',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/admin/resellers': typeof AdminResellersRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/telemetry': typeof AdminTelemetryRoute
+  '/admin/topup': typeof AdminTopupRoute
   '/admin/users': typeof AdminUsersRoute
   '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/admin/resellers': typeof AdminResellersRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/telemetry': typeof AdminTelemetryRoute
+  '/admin/topup': typeof AdminTopupRoute
   '/admin/users': typeof AdminUsersRoute
   '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
@@ -185,6 +193,7 @@ export interface FileRoutesById {
   '/admin/resellers': typeof AdminResellersRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/telemetry': typeof AdminTelemetryRoute
+  '/admin/topup': typeof AdminTopupRoute
   '/admin/users': typeof AdminUsersRoute
   '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/admin/resellers'
     | '/admin/settings'
     | '/admin/telemetry'
+    | '/admin/topup'
     | '/admin/users'
     | '/reseller/bypass'
     | '/reseller/licenses'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/admin/resellers'
     | '/admin/settings'
     | '/admin/telemetry'
+    | '/admin/topup'
     | '/admin/users'
     | '/reseller/bypass'
     | '/reseller/licenses'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/admin/resellers'
     | '/admin/settings'
     | '/admin/telemetry'
+    | '/admin/topup'
     | '/admin/users'
     | '/reseller/bypass'
     | '/reseller/licenses'
@@ -352,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/topup': {
+      id: '/admin/topup'
+      path: '/topup'
+      fullPath: '/admin/topup'
+      preLoaderRoute: typeof AdminTopupRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/telemetry': {
       id: '/admin/telemetry'
       path: '/telemetry'
@@ -431,6 +450,7 @@ interface AdminRouteChildren {
   AdminResellersRoute: typeof AdminResellersRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTelemetryRoute: typeof AdminTelemetryRoute
+  AdminTopupRoute: typeof AdminTopupRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -444,6 +464,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminResellersRoute: AdminResellersRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTelemetryRoute: AdminTelemetryRoute,
+  AdminTopupRoute: AdminTopupRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

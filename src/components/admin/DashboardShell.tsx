@@ -46,6 +46,7 @@ const adminCatalog = [
 
 const adminSystem = [
   { to: "/admin/settings", icon: Settings, label: "Global Settings", description: "Core system configuration" },
+  { to: "/admin/topup", icon: Wallet, label: "Topup Plans", description: "Manage reseller packages" },
 ];
 
 type NavItem = { to: string; icon: React.ElementType; label: string; description?: string };

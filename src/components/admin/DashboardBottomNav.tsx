@@ -53,6 +53,7 @@ const adminCategories = [
     icon: Settings,
     items: [
       { to: "/admin/settings", label: "Settings", icon: Settings },
+      { to: "/admin/topup", label: "Topup Plans", icon: Wallet },
     ],
   },
 ];
