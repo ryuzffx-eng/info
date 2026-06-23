@@ -157,11 +157,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("app-theme");
-      // Force emerald: ignore any previously-cached blue theme
-      if (stored === "emergiteBlue" || stored === "sky" || stored === "electric") {
-        localStorage.setItem("app-theme", "emerald");
-        return "emerald";
-      }
       return stored || "emerald";
     }
     return "emerald";
@@ -177,9 +172,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const refreshGlobalTheme = useCallback(async () => {
     try {
       const data = await api.theme.getGlobal();
-      // Ignore blue themes — site is emerald-only
-      const blocked = ["emergiteBlue", "sky", "electric"];
-      if (data?.theme && themes[data.theme] && !blocked.includes(data.theme)) {
+      if (data?.theme && themes[data.theme]) {
         setThemeState(data.theme);
         localStorage.setItem("app-theme", data.theme);
       }
