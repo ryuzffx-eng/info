@@ -52,7 +52,6 @@ function CopyBtn({ value, label }: { value: string; label?: string }) {
 function ActiveOrderView({ order, onCancel }: { order: any; onCancel: () => void }) {
   const queryClient = useQueryClient();
   const [timeLeft, setTimeLeft] = useState(1200);
-  const [verifying, setVerifying] = useState(false);
   const isBinance = order.payment_method === "binance_pay";
   const networkLabel = isBinance ? "BINANCE PAY" : (order.network?.toUpperCase() ?? "CRYPTO");
 
@@ -76,27 +75,10 @@ function ActiveOrderView({ order, onCancel }: { order: any; onCancel: () => void
         }
       } catch {}
     };
-    const interval = setInterval(poll, 10000);
+    poll(); // Initial check
+    const interval = setInterval(poll, 5000);
     return () => { alive = false; clearInterval(interval); };
   }, [order.order_id]);
-
-  const handleVerify = async () => {
-    setVerifying(true);
-    try {
-      const res = await api.reseller.verifyAutoPayment(order.order_id);
-      if (res.status === "completed") {
-        queryClient.invalidateQueries({ queryKey: ["reseller-profile"] });
-        toast.success(res.msg || "Payment verified! Credits added.");
-        onCancel();
-      } else {
-        toast.info(res.msg || "Payment not detected yet. Please wait.");
-      }
-    } catch (e: any) {
-      toast.error(e.message || "Verification failed");
-    } finally {
-      setVerifying(false);
-    }
-  };
 
   const urgent = timeLeft < 300;
 
@@ -125,10 +107,10 @@ function ActiveOrderView({ order, onCancel }: { order: any; onCancel: () => void
       </div>
 
       {/* Card */}
-      <div className="glass-card rounded-2xl overflow-hidden">
+      <div className="glass-card rounded-2xl overflow-hidden p-5 space-y-4">
 
         {/* Amount banner */}
-        <div className="p-5 border-b border-white/[0.07] bg-gradient-to-r from-primary/8 to-transparent flex items-center justify-between gap-3">
+        <div className="-mx-5 -mt-5 p-5 border-b border-white/[0.07] bg-gradient-to-r from-primary/8 to-transparent flex items-center justify-between gap-3">
           <div>
             <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Send Exactly</div>
             <div className="flex items-baseline gap-2">
@@ -140,90 +122,74 @@ function ActiveOrderView({ order, onCancel }: { order: any; onCancel: () => void
           <CopyBtn value={order.amount?.toFixed(4)} label="Amount" />
         </div>
 
-        <div className="p-5 space-y-4">
-          {/* QR Code */}
-          {order.qr_url && (
-            <div className="flex flex-col items-center">
-              <div className="relative">
-                <div className="absolute -top-1.5 -left-1.5 w-5 h-5 border-t-2 border-l-2 border-primary rounded-tl-lg z-10" />
-                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 border-t-2 border-r-2 border-primary rounded-tr-lg z-10" />
-                <div className="absolute -bottom-1.5 -left-1.5 w-5 h-5 border-b-2 border-l-2 border-primary rounded-bl-lg z-10" />
-                <div className="absolute -bottom-1.5 -right-1.5 w-5 h-5 border-b-2 border-r-2 border-primary rounded-br-lg z-10" />
-                <div className="h-40 w-40 bg-white rounded-xl p-2">
-                  <img src={order.qr_url} alt="QR Code" className="h-full w-full object-contain select-none" />
-                </div>
+        {/* QR Code */}
+        {order.qr_url && (
+          <div className="flex flex-col items-center">
+            <div className="relative">
+              <div className="absolute -top-1.5 -left-1.5 w-5 h-5 border-t-2 border-l-2 border-primary rounded-tl-lg z-10" />
+              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 border-t-2 border-r-2 border-primary rounded-tr-lg z-10" />
+              <div className="absolute -bottom-1.5 -left-1.5 w-5 h-5 border-b-2 border-l-2 border-primary rounded-bl-lg z-10" />
+              <div className="absolute -bottom-1.5 -right-1.5 w-5 h-5 border-b-2 border-r-2 border-primary rounded-br-lg z-10" />
+              <div className="h-40 w-40 bg-white rounded-xl p-2">
+                <img src={order.qr_url} alt="QR Code" className="h-full w-full object-contain select-none" />
               </div>
-              <p className="mt-3 text-[10px] text-zinc-600 font-semibold">Scan with your crypto wallet</p>
             </div>
-          )}
-
-          {/* Address */}
-          <div className="glass rounded-xl p-3.5 space-y-1.5">
-            <div className="text-[9px] font-black uppercase tracking-widest text-zinc-500">
-              {isBinance ? "Binance UID (Payee)" : "USDT Deposit Address"}
-            </div>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 text-[11px] font-mono font-bold text-white break-all leading-relaxed">
-                {order.wallet_address}
-              </code>
-              <CopyBtn value={order.wallet_address} label={isBinance ? "UID" : "Address"} />
-            </div>
+            <p className="mt-3 text-[10px] text-zinc-600 font-semibold">Scan with your crypto wallet</p>
           </div>
+        )}
 
-          {/* Order ID */}
-          <div className="glass rounded-xl p-3.5 space-y-1.5">
-            <div className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Payment Note / Order ID</div>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 text-[11px] font-mono font-bold text-white truncate">{order.order_id}</code>
-              <CopyBtn value={order.order_id} label="Order ID" />
-            </div>
+        {/* Address */}
+        <div className="glass rounded-xl p-3.5 space-y-1.5">
+          <div className="text-[9px] font-black uppercase tracking-widest text-zinc-500">
+            {isBinance ? "Binance UID (Payee)" : "USDT Deposit Address"}
           </div>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-[11px] font-mono font-bold text-white break-all leading-relaxed">
+              {order.wallet_address}
+            </code>
+            <CopyBtn value={order.wallet_address} label={isBinance ? "UID" : "Address"} />
+          </div>
+        </div>
 
-          {/* Timer */}
-          <div className={`glass rounded-xl p-3 flex items-center justify-between ${urgent ? "border-red-500/30" : "border-primary/15"}`}>
-            <div className="flex items-center gap-2">
-              {urgent
-                ? <Clock size={13} className="text-red-400 animate-pulse" />
-                : <Loader2 size={13} className="animate-spin text-primary" />
-              }
-              <span className={`text-[10px] font-black uppercase tracking-wider ${urgent ? "text-red-400" : "text-primary"}`}>
-                {urgent ? "Expiring Soon" : "Monitoring Transfers"}
-              </span>
-            </div>
-            <span className={`font-mono text-sm font-black ${urgent ? "text-red-400" : "text-white"}`}>
-              {formatTime(timeLeft)}
+        {/* Order ID */}
+        <div className="glass rounded-xl p-3.5 space-y-1.5">
+          <div className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Payment Note / Order ID</div>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-[11px] font-mono font-bold text-white truncate">{order.order_id}</code>
+            <CopyBtn value={order.order_id} label="Order ID" />
+          </div>
+        </div>
+
+        {/* Timer */}
+        <div className={`glass rounded-xl p-3 flex items-center justify-between ${urgent ? "border-red-500/30" : "border-primary/15"}`}>
+          <div className="flex items-center gap-2">
+            {urgent
+              ? <Clock size={13} className="text-red-400 animate-pulse" />
+              : <Loader2 size={13} className="animate-spin text-primary" />
+            }
+            <span className={`text-[10px] font-black uppercase tracking-wider ${urgent ? "text-red-400" : "text-primary"}`}>
+              {urgent ? "Expiring Soon" : "Monitoring Transfers"}
             </span>
           </div>
-
-          {/* Steps */}
-          <div className="grid grid-cols-3 gap-1.5">
-            {["1. Send", "2. Verify", "3. Credit"].map((step, i) => (
-              <div key={step} className={`glass rounded-lg py-2.5 text-center text-[10px] font-black uppercase tracking-wider ${i === 0 ? "border-primary/40 text-primary" : "text-zinc-600"}`}>
-                {step}
-              </div>
-            ))}
-          </div>
-
-          <p className="text-[10px] text-zinc-600 font-semibold leading-relaxed text-center">
-            {isBinance
-              ? "Send via Binance C2C to the UID above. Include Order ID as payment note."
-              : "Send USDT on the correct network. Auto-detected on confirmation."}
-          </p>
+          <span className={`font-mono text-sm font-black ${urgent ? "text-red-400" : "text-white"}`}>
+            {formatTime(timeLeft)}
+          </span>
         </div>
 
-        {/* Verify btn */}
-        <div className="p-4 pt-0">
-          <button
-            onClick={handleVerify}
-            disabled={verifying}
-            className="w-full h-12 rounded-xl bg-primary text-black font-black text-xs uppercase tracking-wider hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_24px_var(--primary-glow)]"
-          >
-            {verifying
-              ? <><Loader2 size={14} className="animate-spin" /> Verifying...</>
-              : <><RefreshCw size={14} /> Check Payment Now</>
-            }
-          </button>
+        {/* Steps */}
+        <div className="grid grid-cols-3 gap-1.5">
+          {["1. Send", "2. Verify", "3. Credit"].map((step, i) => (
+            <div key={step} className={`glass rounded-lg py-2.5 text-center text-[10px] font-black uppercase tracking-wider ${i === 0 ? "border-primary/40 text-primary" : "text-zinc-600"}`}>
+              {step}
+            </div>
+          ))}
         </div>
+
+        <p className="text-[10px] text-zinc-600 font-semibold leading-relaxed text-center">
+          {isBinance
+            ? "Send via Binance C2C to the UID above. Include Order ID as payment note."
+            : "Send USDT on the correct network. Auto-detected on confirmation."}
+        </p>
       </div>
     </motion.div>
   );
@@ -233,7 +199,6 @@ function ActiveOrderView({ order, onCancel }: { order: any; onCancel: () => void
 function ResellerTopup() {
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState<number>(50);
-  const [customAmount, setCustomAmount] = useState<string>("");
   const [method, setMethod] = useState<"razorpay" | "binance" | "crypto">("razorpay");
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeOrder, setActiveOrder] = useState<any>(null);
@@ -250,13 +215,13 @@ function ResellerTopup() {
   });
 
   useEffect(() => {
-    if (plans && plans.length > 0 && amount === 50 && !customAmount) {
+    if (plans && plans.length > 0 && amount === 50) {
       const def = plans.find((p) => p.amount === 50) || plans[0];
       setAmount(def.amount);
     }
   }, [plans]);
 
-  const activeAmount = customAmount ? parseFloat(customAmount) || 0 : amount;
+  const activeAmount = amount;
   const selectedPlan = plans?.find((p) => p.amount === activeAmount);
   const activeCredits = selectedPlan ? selectedPlan.credits : activeAmount;
 
@@ -360,9 +325,9 @@ function ResellerTopup() {
               {(plans && plans.length > 0 ? plans : PRESET_AMOUNTS.map((a) => ({ id: a, amount: a, credits: a }))).map((plan: any) => (
                 <button
                   key={plan.id}
-                  onClick={() => { setAmount(plan.amount); setCustomAmount(""); }}
+                  onClick={() => { setAmount(plan.amount); }}
                   className={`py-3 px-1 rounded-xl text-center border transition-all flex flex-col items-center gap-0.5 cursor-pointer ${
-                    !customAmount && amount === plan.amount
+                    amount === plan.amount
                       ? "border-primary bg-primary/10 text-primary shadow-[0_0_16px_var(--primary-glow)]"
                       : "glass text-zinc-500 hover:border-white/20 hover:text-white"
                   }`}
@@ -371,16 +336,6 @@ function ResellerTopup() {
                   <span className="text-[9px] font-black text-primary">{plan.credits} cr</span>
                 </button>
               ))}
-            </div>
-            <div className="relative">
-              <input
-                type="number"
-                placeholder="Custom amount"
-                value={customAmount}
-                onChange={(e) => { setCustomAmount(e.target.value); setAmount(0); }}
-                className="glass-input w-full h-11 rounded-xl px-4 text-sm text-white font-bold outline-none placeholder:text-zinc-600"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-600">USD</span>
             </div>
           </div>
         </div>
