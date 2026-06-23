@@ -32,11 +32,10 @@ function ResellerHome() {
       </div>
     );
   }
-
   const recentKeys = licensesData?.items || [];
   const totalKeys = licensesData?.total || 0;
   const activeCustomers = licensesData?.active_customers || 0;
-  const estimatedRevenue = totalKeys * 15; // Assume $15 average per key
+  const estimatedRevenue = licensesData?.estimated_revenue || 0;
 
   return (
     <div>
