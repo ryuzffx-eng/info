@@ -15,6 +15,7 @@ import { LoadingScreen } from "@/components/site/LoadingScreen";
 import { CrystalBackground } from "@/components/crystal/CrystalBackground";
 import { GlassButton } from "@/components/crystal/GlassButton";
 import { GlassCard } from "@/components/crystal/GlassCard";
+import ProtectionProvider from "@/components/site/ProtectionProvider";
 
 function NotFoundComponent() {
   return (
@@ -112,6 +113,7 @@ function RootComponent() {
 
   return (
     <ThemeProvider>
+      <ProtectionProvider />
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
         <QueryClientProvider client={queryClient}>
           {isInitialLoading ? (
