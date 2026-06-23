@@ -45,6 +45,12 @@ function ResellerTopup() {
     }
   }, [plans]);
 
+  useEffect(() => {
+    if (profile?.username) {
+      setCardName(profile.username);
+    }
+  }, [profile]);
+
   const topupMutation = useMutation({
     mutationFn: (data: { amount: number; payment_method: string; coupon_code?: string }) => api.reseller.topup(data),
     onSuccess: (res) => {
