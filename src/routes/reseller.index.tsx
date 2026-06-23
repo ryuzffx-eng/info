@@ -37,6 +37,13 @@ function ResellerHome() {
     queryFn: () => api.reseller.getTopupPlans(),
   });
 
+  const quickAmounts = plans?.slice(0, 4) ?? [
+    { id: 10, amount: 10, credits: 10 },
+    { id: 25, amount: 25, credits: 25 },
+    { id: 50, amount: 50, credits: 50 },
+    { id: 100, amount: 100, credits: 100 },
+  ];
+
   if (profileLoading || licensesLoading) {
     return (
       <div className="flex h-[70vh] items-center justify-center">
@@ -52,7 +59,7 @@ function ResellerHome() {
   const balance        = profile?.credits || 0;
   const isAdmin        = profile?.role === "admin";
 
-  const quickAmounts = plans?.slice(0, 4) ?? [{ id: 10, amount: 10, credits: 10 }, { id: 25, amount: 25, credits: 25 }, { id: 50, amount: 50, credits: 50 }, { id: 100, amount: 100, credits: 100 }];
+
 
   return (
     <div className="space-y-5 pb-24 sm:pb-8">

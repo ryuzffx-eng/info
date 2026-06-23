@@ -129,17 +129,17 @@
     radial-gradient(ellipse 80% 55% at 50% 0%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 70%);
 
   /* ── iOS 26 Glass tokens ──────────────────────────────── */
-  --glass-bg:           rgba(5, 10, 25, 0.82);
-  --glass-bg-hover:     rgba(5, 10, 25, 0.88);
-  --glass-bg-strong:    rgba(5, 10, 25, 0.95);
-  --glass-bg-overlay:   rgba(5, 10, 25, 0.98);
-  --glass-border:       rgba(255, 255, 255, 0.10);
-  --glass-border-subtle:rgba(255, 255, 255, 0.08);
-  --glass-highlight:    rgba(255,255,255, 0.115);
-  --glass-shine-top:    rgba(255,255,255, 0.11);
+  --glass-bg:           rgba(5, 12, 28, 0.45);
+  --glass-bg-hover:     rgba(5, 12, 28, 0.55);
+  --glass-bg-strong:    rgba(5, 12, 28, 0.72);
+  --glass-bg-overlay:   rgba(5, 10, 25, 0.96);
+  --glass-border:       rgba(255, 255, 255, 0.12);
+  --glass-border-subtle:rgba(255, 255, 255, 0.09);
+  --glass-highlight:    rgba(255,255,255, 0.10);
+  --glass-shine-top:    rgba(255,255,255, 0.09);
   --glass-blur:         28px;
   --glass-blur-strong:  52px;
-  --glass-saturate:     160%;
+  --glass-saturate:     180%;
 
   /* ── Custom Gradients ── */
   --gradient-text-top: linear-gradient(165deg, #ffffff 0% 38%, #bfdbfe 62%, #60a5fa 82%, #2563eb 100%);
