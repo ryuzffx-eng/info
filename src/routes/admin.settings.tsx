@@ -129,8 +129,27 @@ function Settings() {
 
         <ThemePicker />
 
-
-
+        <Card>
+          <h3 className="font-semibold text-white">Top-up Bonus Configuration</h3>
+          <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Manage bonus rules for reseller deposits</p>
+          <div className="mt-5 space-y-4">
+            <Toggle 
+              label="Enable Top-up Bonus" 
+              checked={formState.topup_bonus_enabled === "true"} 
+              onChange={(val) => updateKey("topup_bonus_enabled", val ? "true" : "false")} 
+            />
+            <Field 
+              label="Bonus Threshold Limit ($)" 
+              value={formState.topup_bonus_threshold ?? "10.00"} 
+              onChangeText={(val) => updateKey("topup_bonus_threshold", val)} 
+            />
+            <Field 
+              label="Bonus Percent (%)" 
+              value={formState.topup_bonus_percent ?? "10"} 
+              onChangeText={(val) => updateKey("topup_bonus_percent", val)} 
+            />
+          </div>
+        </Card>
         <Card>
           <h3 className="font-semibold text-white">API Infrastructure</h3>
           <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Webhooks & rate limits</p>

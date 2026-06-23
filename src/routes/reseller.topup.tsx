@@ -199,6 +199,7 @@ function ActiveOrderView({ order, onCancel }: { order: any; onCancel: () => void
 function ResellerTopup() {
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState<number>(50);
+  const [customAmount, setCustomAmount] = useState<string>("");
   const [method, setMethod] = useState<"razorpay" | "binance" | "crypto">("razorpay");
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeOrder, setActiveOrder] = useState<any>(null);
@@ -215,15 +216,25 @@ function ResellerTopup() {
   });
 
   useEffect(() => {
-    if (plans && plans.length > 0 && amount === 50) {
+    if (plans && plans.length > 0 && amount === 50 && !customAmount) {
       const def = plans.find((p) => p.amount === 50) || plans[0];
       setAmount(def.amount);
     }
   }, [plans]);
 
-  const activeAmount = amount;
-  const selectedPlan = plans?.find((p) => p.amount === activeAmount);
-  const activeCredits = selectedPlan ? selectedPlan.credits : activeAmount;
+  const activeAmount = customAmount ? parseFloat(customAmount) || 0 : amount;
+
+  const calculateCredits = (amt: number) => {
+    const selectedPlan = plans?.find((p) => p.amount === amt);
+    let baseCredits = selectedPlan ? selectedPlan.credits : amt;
+    if (profile?.topup_bonus_enabled && amt <= profile.topup_bonus_threshold && amt > 0) {
+      const bonus = Math.floor(baseCredits * (profile.topup_bonus_percent / 100));
+      return { base: baseCredits, bonus, total: baseCredits + bonus };
+    }
+    return { base: baseCredits, bonus: 0, total: baseCredits };
+  };
+
+  const { base: baseCredits, bonus: bonusCredits, total: activeCredits } = calculateCredits(activeAmount);
 
   const handleCheckout = async () => {
     if (isNaN(activeAmount) || activeAmount <= 0) { toast.error("Please enter a valid amount"); return; }
@@ -322,21 +333,49 @@ function ResellerTopup() {
           <div className="glass-card rounded-2xl p-4 space-y-3">
             <h3 className="text-[11px] font-black text-zinc-400 uppercase tracking-widest">Select Package</h3>
             <div className="grid grid-cols-3 gap-2">
-              {(plans && plans.length > 0 ? plans : PRESET_AMOUNTS.map((a) => ({ id: a, amount: a, credits: a }))).map((plan: any) => (
-                <button
-                  key={plan.id}
-                  onClick={() => { setAmount(plan.amount); }}
-                  className={`py-3 px-1 rounded-xl text-center border transition-all flex flex-col items-center gap-0.5 cursor-pointer ${
-                    amount === plan.amount
-                      ? "border-primary bg-primary/10 text-primary shadow-[0_0_16px_var(--primary-glow)]"
-                      : "glass text-zinc-500 hover:border-white/20 hover:text-white"
-                  }`}
-                >
-                  <span className="font-black text-sm">${plan.amount}</span>
-                  <span className="text-[9px] font-black text-primary">{plan.credits} cr</span>
-                </button>
-              ))}
+              {(plans && plans.length > 0 ? plans : PRESET_AMOUNTS.map((a) => ({ id: a, amount: a, credits: a }))).map((plan: any) => {
+                const bonusInfo = calculateCredits(plan.amount);
+                return (
+                  <button
+                    key={plan.id}
+                    onClick={() => { setAmount(plan.amount); setCustomAmount(""); }}
+                    className={`py-3 px-1 rounded-xl text-center border transition-all flex flex-col items-center gap-0.5 cursor-pointer ${
+                      !customAmount && amount === plan.amount
+                        ? "border-primary bg-primary/10 text-primary shadow-[0_0_16px_var(--primary-glow)] border-primary/50"
+                        : "glass text-zinc-500 hover:border-white/20 hover:text-white"
+                    }`}
+                  >
+                    <span className="font-black text-sm">${plan.amount}</span>
+                    <span className="text-[9px] font-black text-primary">
+                      {plan.credits} cr
+                      {bonusInfo.bonus > 0 && <span className="text-emerald-400 ml-0.5">+{bonusInfo.bonus}</span>}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
+
+            <div className="relative mt-3">
+              <input
+                type="number"
+                placeholder="Custom amount"
+                value={customAmount}
+                onChange={(e) => { setCustomAmount(e.target.value); setAmount(0); }}
+                className="glass-input w-full h-11 rounded-xl px-4 text-sm text-white font-bold outline-none placeholder:text-zinc-600"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-600">USD</span>
+            </div>
+
+            {profile?.topup_bonus_enabled && (
+              <div className="mt-2.5 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">
+                  🎁 active bonus: +{profile.topup_bonus_percent}% credits
+                </span>
+                <span className="text-[9px] text-zinc-500 font-semibold block mt-0.5">
+                  Applied to all deposits up to ${profile.topup_bonus_threshold}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -456,7 +495,12 @@ function ResellerTopup() {
               </div>
               <div className="border-l border-white/[0.08] pl-4">
                 <div className="text-[10px] text-zinc-600 uppercase font-black tracking-wider">Credits</div>
-                <div className="text-2xl font-black text-primary">{activeCredits}</div>
+                <div className="text-2xl font-black text-primary">
+                  {activeCredits}
+                  {bonusCredits > 0 && (
+                    <span className="text-xs text-emerald-400 ml-1.5 font-black">({baseCredits} + {bonusCredits} bonus)</span>
+                  )}
+                </div>
               </div>
               <div className="ml-auto flex items-center gap-1 text-[10px] font-bold text-primary glass rounded-full px-2.5 py-1 border-primary/20">
                 <Zap size={10} /> Instant
