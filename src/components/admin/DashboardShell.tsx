@@ -3,7 +3,7 @@ import { Logo } from "@/components/site/Logo";
 import {
   LayoutDashboard, AppWindow, Users, Key, UsersRound, Package,
   FolderOpen, Store, BarChart3, Settings, ScrollText, MessageCircle,
-  ChevronDown, Shield, Monitor,
+  ChevronDown, Shield, Monitor, Wallet,
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,6 +17,7 @@ const userNav = [
 
 const resellerDashboardNav = [
   { to: "/reseller", icon: LayoutDashboard, label: "Overview", description: "Reseller dashboard" },
+  { to: "/reseller/topup", icon: Wallet, label: "Top Up", description: "Purchase credit balance" },
 ];
 
 const resellerManagement = [

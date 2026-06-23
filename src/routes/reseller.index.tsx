@@ -47,8 +47,8 @@ function ResellerHome() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard 
-          label="Credit balance" 
-          value={profile?.role === "admin" ? "Unlimited" : (profile?.credits || 0).toLocaleString()} 
+          label="Balance (USD)" 
+          value={profile?.role === "admin" ? "Unlimited" : `$${(profile?.credits || 0).toFixed(2)}`} 
           delta={profile?.role === "admin" ? "Admin Privileges" : "Top up anytime"} 
           icon={Wallet} 
         />

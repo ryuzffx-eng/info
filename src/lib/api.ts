@@ -155,6 +155,7 @@ export const api = {
     deleteLicense: (id: number) => apiFetch(`/reseller/licenses/${id}`, { method: "DELETE" }),
     resetLicenseHwid: (id: number) => apiFetch(`/reseller/licenses/${id}/reset-hwid`, { method: "PATCH" }),
     togglePauseLicense: (id: number) => apiFetch(`/reseller/licenses/${id}/toggle-pause`, { method: "PATCH" }),
+    topup: (data: { amount: number; payment_method: string; coupon_code?: string }) => apiFetch("/reseller/topup", { method: "POST", body: JSON.stringify(data) }),
   },
   bypass: {
     getStats: () => apiFetch("/bypass/stats"),

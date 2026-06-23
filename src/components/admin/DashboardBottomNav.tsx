@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { 
   LayoutDashboard, Key, ScrollText, Users, Package, Settings, MessageCircle, 
-  BarChart3, Shield, UsersRound, AppWindow, FolderOpen, Store, ChevronUp, Monitor
+  BarChart3, Shield, UsersRound, AppWindow, FolderOpen, Store, ChevronUp, Monitor, Wallet
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -17,6 +17,7 @@ const resellerLinks = [
   { to: "/reseller/licenses", label: "Licenses", icon: Key },
   { to: "/reseller/users", label: "Users", icon: Users },
   { to: "/reseller/bypass", label: "Bypass", icon: Shield },
+  { to: "/reseller/topup", label: "Topup", icon: Wallet },
 ];
 
 const adminCategories = [
