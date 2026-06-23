@@ -645,3 +645,31 @@
     border: 1px solid rgba(255,255,255, 0.08);
   }
 }
+
+/* ══════════════════════════════════════════════════════════
+   RAZORPAY CHECKOUT OVERLAY — DARK MODE OVERRIDES
+   Razorpay injects its own DOM nodes; we patch the backdrop
+   so the checkout floats over our dark theme, not a white page.
+   ══════════════════════════════════════════════════════════ */
+
+/* Main dark glass backdrop behind the modal */
+#rzp-overlay,
+.razorpay-backdrop,
+.razorpay-container > div:first-child {
+  background: rgba(0, 0, 0, 0.82) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Keep the actual checkout iframe/container untouched (white is correct there) */
+.razorpay-checkout-frame {
+  border-radius: 16px !important;
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Prevent the body from going white when Razorpay opens */
+body.razorpay-checkout-open,
+body:has(#rzp-overlay) {
+  background: var(--background) !important;
+  overflow: hidden;
+}
