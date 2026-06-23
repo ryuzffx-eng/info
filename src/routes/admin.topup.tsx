@@ -3,7 +3,7 @@ import { PageHeader, Card, Btn, Badge, ConfirmModal } from "@/components/admin/u
 import { Plus, Trash2, Loader2, Sparkles, AlertTriangle, ArrowRight, Wallet, Info } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -20,9 +20,39 @@ function AdminTopupPlans() {
   const [credits, setCredits] = useState("");
   const [description, setDescription] = useState("");
 
-  const { data: plans, isLoading, refetch } = useQuery<any[]>({
+  // Bonus states
+  const [bonusEnabled, setBonusEnabled] = useState(false);
+  const [bonusThreshold, setBonusThreshold] = useState("10.00");
+  const [bonusPercent, setBonusPercent] = useState("10");
+
+  const { data: plans, isLoading } = useQuery<any[]>({
     queryKey: ["admin-topup-plans"],
     queryFn: () => api.admin.getTopupPlans(),
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: ["settings"],
+    queryFn: api.admin.getSettings,
+  });
+
+  useEffect(() => {
+    if (settings) {
+      setBonusEnabled(settings.topup_bonus_enabled === "true");
+      setBonusThreshold(settings.topup_bonus_threshold ?? "10.00");
+      setBonusPercent(settings.topup_bonus_percent ?? "10");
+    }
+  }, [settings]);
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: (data: Record<string, string>) => api.admin.updateSettings(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      queryClient.invalidateQueries({ queryKey: ["reseller-profile"] });
+      toast.success("Bonus settings updated!");
+    },
+    onError: (err: any) => {
+      toast.error(`Failed to update bonus settings: ${err.message}`);
+    }
   });
 
   const createMutation = useMutation({
@@ -89,6 +119,80 @@ function AdminTopupPlans() {
           </Btn>
         }
       />
+
+      {/* Top-up Bonus Configuration Card */}
+      <Card className="border-emerald-500/10 bg-emerald-500/[0.02]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div>
+            <h3 className="font-bold text-white flex items-center gap-1.5">
+              <Sparkles size={16} className="text-emerald-400" />
+              Reseller Top-up Bonus Rules
+            </h3>
+            <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider mt-0.5">
+              Reward bonus credits for smaller deposits (up to threshold limit)
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Toggle */}
+            <label className="flex items-center gap-2 cursor-pointer bg-white/[0.02] border border-white/5 hover:border-white/10 px-3 py-2 rounded-xl transition-all">
+              <span className="text-xs text-zinc-400 uppercase font-black tracking-wider">Enable Bonus</span>
+              <input 
+                type="checkbox" 
+                checked={bonusEnabled} 
+                onChange={(e) => {
+                  const val = e.target.checked;
+                  setBonusEnabled(val);
+                  updateSettingsMutation.mutate({
+                    ...settings,
+                    topup_bonus_enabled: val ? "true" : "false"
+                  });
+                }}
+                className="peer sr-only" 
+              />
+              <span className="relative h-5 w-9 rounded-full bg-zinc-800 transition-colors peer-checked:bg-emerald-500">
+                <span className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform peer-checked:translate-x-4" />
+              </span>
+            </label>
+
+            {/* Threshold field */}
+            <div className="flex items-center gap-1.5 bg-white/[0.02] border border-white/5 px-3 py-1.5 rounded-xl">
+              <span className="text-[10px] text-zinc-500 uppercase font-black tracking-wider">Max Amount</span>
+              <input 
+                type="number"
+                value={bonusThreshold}
+                onChange={(e) => setBonusThreshold(e.target.value)}
+                onBlur={() => {
+                  updateSettingsMutation.mutate({
+                    ...settings,
+                    topup_bonus_threshold: bonusThreshold
+                  });
+                }}
+                className="w-16 bg-transparent border-b border-white/10 focus:border-emerald-500 outline-none text-xs text-white font-mono font-bold text-center py-0.5"
+              />
+              <span className="text-xs text-zinc-600 font-bold">$</span>
+            </div>
+
+            {/* Percent field */}
+            <div className="flex items-center gap-1.5 bg-white/[0.02] border border-white/5 px-3 py-1.5 rounded-xl">
+              <span className="text-[10px] text-zinc-500 uppercase font-black tracking-wider">Bonus</span>
+              <input 
+                type="number"
+                value={bonusPercent}
+                onChange={(e) => setBonusPercent(e.target.value)}
+                onBlur={() => {
+                  updateSettingsMutation.mutate({
+                    ...settings,
+                    topup_bonus_percent: bonusPercent
+                  });
+                }}
+                className="w-12 bg-transparent border-b border-white/10 focus:border-emerald-500 outline-none text-xs text-white font-mono font-bold text-center py-0.5"
+              />
+              <span className="text-xs text-zinc-600 font-bold">%</span>
+            </div>
+          </div>
+        </div>
+      </Card>
 
       <Card className="!p-0 overflow-hidden border-border/40">
         <div className="scrollbar-thin overflow-x-auto">
