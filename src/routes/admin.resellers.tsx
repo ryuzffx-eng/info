@@ -13,7 +13,7 @@ function Resellers() {
   const queryClient = useQueryClient();
   const [openNew, setOpenNew] = useState(false);
   const [openTopup, setOpenTopup] = useState<{ id: number, name: string } | null>(null);
-  const [newUserId, setNewUserId] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
   const [credits, setCredits] = useState(0);
 
   const { data: resellers, isLoading } = useQuery({
@@ -27,7 +27,7 @@ function Resellers() {
       queryClient.invalidateQueries({ queryKey: ["admin-resellers"] });
       toast.success("Reseller created successfully");
       setOpenNew(false);
-      setNewUserId("");
+      setNewUserEmail("");
     },
     onError: (err: any) => toast.error(err.message)
   });
@@ -113,11 +113,11 @@ function Resellers() {
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">User ID</label>
-                  <input value={newUserId} onChange={(e) => setNewUserId(e.target.value)} placeholder="User ID (e.g. 1)" 
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">User Email</label>
+                  <input type="email" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} placeholder="user@example.com" 
                     className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50" />
                 </div>
-                <Btn className="w-full justify-center py-6 mt-4" onClick={() => createMutation.mutate({ user_id: parseInt(newUserId), credits: 0 })} disabled={createMutation.isPending || !newUserId}>
+                <Btn className="w-full justify-center py-6 mt-4" onClick={() => createMutation.mutate({ email: newUserEmail, credits: 0 })} disabled={createMutation.isPending || !newUserEmail}>
                   {createMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : "Promote User"}
                 </Btn>
               </div>
