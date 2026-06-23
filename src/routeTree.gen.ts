@@ -17,7 +17,6 @@ import { Route as PublicRouteImport } from './routes/_public'
 import { Route as ResellerIndexRouteImport } from './routes/reseller.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PublicIndexRouteImport } from './routes/_public.index'
-import { Route as ResellerUsersRouteImport } from './routes/reseller.users'
 import { Route as ResellerLogsRouteImport } from './routes/reseller.logs'
 import { Route as ResellerLicensesRouteImport } from './routes/reseller.licenses'
 import { Route as ResellerBypassRouteImport } from './routes/reseller.bypass'
@@ -69,11 +68,6 @@ const PublicIndexRoute = PublicIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => PublicRoute,
-} as any)
-const ResellerUsersRoute = ResellerUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => ResellerRoute,
 } as any)
 const ResellerLogsRoute = ResellerLogsRouteImport.update({
   id: '/logs',
@@ -154,7 +148,6 @@ export interface FileRoutesByFullPath {
   '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
   '/reseller/logs': typeof ResellerLogsRoute
-  '/reseller/users': typeof ResellerUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/reseller/': typeof ResellerIndexRoute
 }
@@ -173,7 +166,6 @@ export interface FileRoutesByTo {
   '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
   '/reseller/logs': typeof ResellerLogsRoute
-  '/reseller/users': typeof ResellerUsersRoute
   '/': typeof PublicIndexRoute
   '/admin': typeof AdminIndexRoute
   '/reseller': typeof ResellerIndexRoute
@@ -197,7 +189,6 @@ export interface FileRoutesById {
   '/reseller/bypass': typeof ResellerBypassRoute
   '/reseller/licenses': typeof ResellerLicensesRoute
   '/reseller/logs': typeof ResellerLogsRoute
-  '/reseller/users': typeof ResellerUsersRoute
   '/_public/': typeof PublicIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/reseller/': typeof ResellerIndexRoute
@@ -222,7 +213,6 @@ export interface FileRouteTypes {
     | '/reseller/bypass'
     | '/reseller/licenses'
     | '/reseller/logs'
-    | '/reseller/users'
     | '/admin/'
     | '/reseller/'
   fileRoutesByTo: FileRoutesByTo
@@ -241,7 +231,6 @@ export interface FileRouteTypes {
     | '/reseller/bypass'
     | '/reseller/licenses'
     | '/reseller/logs'
-    | '/reseller/users'
     | '/'
     | '/admin'
     | '/reseller'
@@ -264,7 +253,6 @@ export interface FileRouteTypes {
     | '/reseller/bypass'
     | '/reseller/licenses'
     | '/reseller/logs'
-    | '/reseller/users'
     | '/_public/'
     | '/admin/'
     | '/reseller/'
@@ -335,13 +323,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof PublicIndexRouteImport
       parentRoute: typeof PublicRoute
-    }
-    '/reseller/users': {
-      id: '/reseller/users'
-      path: '/users'
-      fullPath: '/reseller/users'
-      preLoaderRoute: typeof ResellerUsersRouteImport
-      parentRoute: typeof ResellerRoute
     }
     '/reseller/logs': {
       id: '/reseller/logs'
@@ -473,7 +454,6 @@ interface ResellerRouteChildren {
   ResellerBypassRoute: typeof ResellerBypassRoute
   ResellerLicensesRoute: typeof ResellerLicensesRoute
   ResellerLogsRoute: typeof ResellerLogsRoute
-  ResellerUsersRoute: typeof ResellerUsersRoute
   ResellerIndexRoute: typeof ResellerIndexRoute
 }
 
@@ -481,7 +461,6 @@ const ResellerRouteChildren: ResellerRouteChildren = {
   ResellerBypassRoute: ResellerBypassRoute,
   ResellerLicensesRoute: ResellerLicensesRoute,
   ResellerLogsRoute: ResellerLogsRoute,
-  ResellerUsersRoute: ResellerUsersRoute,
   ResellerIndexRoute: ResellerIndexRoute,
 }
 

@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 const userLinks = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
@@ -59,13 +61,28 @@ export function DashboardBottomNav({ variant }: { variant: "admin" | "reseller" 
   const loc = useLocation();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
+  const { data: profile } = useQuery({
+    queryKey: ["reseller-profile"],
+    queryFn: () => api.reseller.getProfile(),
+    enabled: variant === "reseller"
+  });
+
   // Close menu on navigation
   useEffect(() => {
     setActiveCategory(null);
   }, [loc.pathname]);
 
   if (variant !== "admin") {
-    const links = variant === "reseller" ? resellerLinks : userLinks;
+    let links = userLinks;
+    if (variant === "reseller") {
+      const canAccessBypass = profile?.role === "admin" || profile?.permissions?.can_access_bypass;
+      links = resellerLinks.filter(l => {
+        if (l.to === "/reseller/users") return false;
+        if (l.to === "/reseller/bypass") return !!canAccessBypass;
+        return true;
+      });
+    }
+
     return (
       <nav className="glass-nav fixed bottom-0 left-0 right-0 z-50 block border-t border-white/10 px-2 pb-[calc(0.8rem+env(safe-area-inset-bottom))] pt-3 md:hidden shadow-[var(--shadow-glass)]">
         <div className="mx-auto flex max-w-lg items-center justify-around">

@@ -174,6 +174,12 @@ export function DashboardShell({
     retry: false,
   });
 
+  const { data: profile } = useQuery({
+    queryKey: ["reseller-profile"],
+    queryFn: () => api.reseller.getProfile(),
+    enabled: variant === "reseller",
+  });
+
   const isAdmin = user?.role === "admin";
   const isReseller = user?.role === "admin" || user?.role === "reseller";
 
@@ -210,7 +216,13 @@ export function DashboardShell({
                   />
                   <NavTab
                     label="Management"
-                    items={resellerManagement}
+                    items={resellerManagement.filter(item => {
+                      if (item.to === "/reseller/users") return false;
+                      if (item.to === "/reseller/bypass") {
+                        return profile?.role === "admin" || profile?.permissions?.can_access_bypass;
+                      }
+                      return true;
+                    })}
                     active={activeMenu === "reseller-mgmt"}
                     onHover={() => setActiveMenu("reseller-mgmt")}
                     onLeave={() => setActiveMenu(null)}

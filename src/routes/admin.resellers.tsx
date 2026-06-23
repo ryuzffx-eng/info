@@ -18,6 +18,7 @@ function Resellers() {
   const [isAllApps, setIsAllApps] = useState(true);
   const [canCreateCustomKeys, setCanCreateCustomKeys] = useState(false);
   const [canGenLifetime, setCanGenLifetime] = useState(false);
+  const [canAccessBypass, setCanAccessBypass] = useState(false);
   const [banData, setBanData] = useState<{ id: number, name: string, isBanned: boolean } | null>(null);
   const [banReason, setBanReason] = useState("");
   const [deleteResellerId, setDeleteResellerId] = useState<number | null>(null);
@@ -129,6 +130,7 @@ function Resellers() {
                 const allowedApps = r.permissions?.allowed_apps;
                 const canCreateCustom = r.permissions?.can_create_custom_keys;
                 const canGenLifetime = r.permissions?.can_gen_lifetime;
+                const canAccessBypassVal = r.permissions?.can_access_bypass;
                 
                 return (
                   <tr key={r.id} className="group hover:bg-primary/[0.02] transition-colors">
@@ -178,6 +180,10 @@ function Resellers() {
                           <span className={`inline-block h-2 w-2 rounded-full ${canGenLifetime ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" : "bg-zinc-600"}`} />
                           <span className="text-xs font-semibold text-foreground/80">Lifetime Keys: {canGenLifetime ? "Yes" : "No"}</span>
                         </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`inline-block h-2 w-2 rounded-full ${canAccessBypassVal ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" : "bg-zinc-600"}`} />
+                          <span className="text-xs font-semibold text-foreground/80">Bypass Access: {canAccessBypassVal ? "Yes" : "No"}</span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6">
@@ -201,6 +207,7 @@ function Resellers() {
                           setIsAllApps(!r.permissions?.allowed_apps);
                           setCanCreateCustomKeys(!!r.permissions?.can_create_custom_keys);
                           setCanGenLifetime(!!r.permissions?.can_gen_lifetime);
+                          setCanAccessBypass(!!r.permissions?.can_access_bypass);
                         }}>Permissions</Btn>
                         <Btn variant="outline" className={r.is_banned ? "text-green-500 hover:text-green-400 border-green-500/20" : "text-yellow-500 hover:text-yellow-400 border-yellow-500/20"} onClick={() => { setBanData({ id: r.id, name: r.username, isBanned: r.is_banned }); setBanReason(r.ban_reason || ""); }}>
                           {r.is_banned ? "Unban" : "Ban"}
@@ -333,6 +340,26 @@ function Resellers() {
                       />
                     </button>
                   </div>
+
+                  <div className="flex items-center justify-between p-3.5 rounded-xl border border-border/45 bg-card/20">
+                    <div>
+                      <span className="text-sm font-semibold block text-white/95">Allow Bypass Access</span>
+                      <span className="text-[10px] text-muted-foreground block mt-0.5">Let reseller manage bypass whitelist/blacklist</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCanAccessBypass(!canAccessBypass)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                        canAccessBypass ? "bg-primary" : "bg-zinc-700"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          canAccessBypass ? "translate-x-4.5" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Product Access Section */}
@@ -378,7 +405,8 @@ function Resellers() {
                   data: { 
                     allowed_apps: isAllApps ? null : tempAllowedApps,
                     can_create_custom_keys: canCreateCustomKeys,
-                    can_gen_lifetime: canGenLifetime
+                    can_gen_lifetime: canGenLifetime,
+                    can_access_bypass: canAccessBypass
                   } 
                 })} disabled={updateMutation.isPending}>
                   {updateMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : "Save Permissions"}
