@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;1,14..32,400&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;1,14..32,400&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -54,8 +54,22 @@
   --color-sidebar-ring:           var(--sidebar-ring);
 
   /* ── Typography ─────────────────────────────────────── */
-  --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-display: var(--font-outfit);
+  --font-outfit:  "Outfit", sans-serif;
   --font-sans:    "Inter", system-ui, sans-serif;
+
+  /* ── Tailwind overrides mapping emerald colors directly to blue hexes ── */
+  --color-emerald-50: #eff6ff;
+  --color-emerald-100: #dbeafe;
+  --color-emerald-200: #bfdbfe;
+  --color-emerald-300: #93c5fd;
+  --color-emerald-400: #60a5fa;
+  --color-emerald-500: #3b82f6;
+  --color-emerald-600: #2563eb;
+  --color-emerald-700: #1d4ed8;
+  --color-emerald-800: #1e40af;
+  --color-emerald-900: #1e3a8a;
+  --color-emerald-950: #172554;
 
   /* ── Spacing scale (overridable) ────────────────────── */
   --spacing-section: 7rem;
@@ -67,14 +81,14 @@
    ══════════════════════════════════════════════════════════ */
 :root {
   /* ── Backgrounds ──────────────────────────────────────── */
-  --bg-deep:   #080b11;
-  --bg-base:   #0c1018;
-  --background:#0f131b;
+  --bg-deep:   #000000;
+  --bg-base:   #000000;
+  --background:#000000;
   --bg-mesh:
     radial-gradient(ellipse 120% 70% at 50% -8%,  color-mix(in srgb, var(--primary) 13%, transparent), transparent 62%),
     radial-gradient(ellipse 65%  55% at 88%  8%,  color-mix(in srgb, var(--accent)  9%, transparent), transparent 56%),
     radial-gradient(ellipse 55%  48% at 8%  95%,  color-mix(in srgb, var(--primary) 7%, transparent), transparent 54%),
-    linear-gradient(160deg, #111620 0%, #0c1018 52%, #080b11 100%);
+    linear-gradient(160deg, #02040a 0%, #000000 100%);
 
   /* ── Text ─────────────────────────────────────────────── */
   --foreground:           #eef0f6;
@@ -82,18 +96,18 @@
   --subtle-foreground:    #505a6e;
 
   /* ── Surface / card ───────────────────────────────────── */
-  --card:                 rgba(255,255,255, 0.055);
+  --card:                 rgba(5, 10, 25, 0.82);
   --card-foreground:      #eef0f6;
-  --popover:              rgba(255,255,255, 0.09);
+  --popover:              rgba(5, 10, 25, 0.82);
   --popover-foreground:   #eef0f6;
 
   /* ── Brand palette ────────────────────────────────────── */
-  --primary:              #10D588;
-  --primary-foreground:   #061a0f;
-  --accent:               #00E08A;
-  --accent-foreground:    #04160c;
-  --neon:                 #5BFFC0;
-  --success:              #10D588;
+  --primary:              #BFDBFE;
+  --primary-foreground:   #091322;
+  --accent:               #FFFFFF;
+  --accent-foreground:    #091322;
+  --neon:                 #E0EFFF;
+  --success:              #BFDBFE;
   --warning:              #f5a623;
 
   /* ── UI surface ───────────────────────────────────────── */
@@ -110,22 +124,27 @@
 
   /* ── Gradients ────────────────────────────────────────── */
   --gradient-brand:
-    linear-gradient(135deg, #10D588 0%, #00E08A 50%, #5BFFC0 100%);
+    linear-gradient(135deg, #BFDBFE 0%, #FFFFFF 50%, #E0EFFF 100%);
   --gradient-hero:
     radial-gradient(ellipse 80% 55% at 50% 0%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 70%);
 
   /* ── iOS 26 Glass tokens ──────────────────────────────── */
-  --glass-bg:           rgba(255,255,255, 0.058);
-  --glass-bg-hover:     rgba(255,255,255, 0.085);
-  --glass-bg-strong:    rgba(255,255,255, 0.095);
-  --glass-bg-overlay:   rgba(255,255,255, 0.108);
-  --glass-border:       rgba(255,255,255, 0.13);
-  --glass-border-subtle:rgba(255,255,255, 0.077);
+  --glass-bg:           rgba(5, 10, 25, 0.82);
+  --glass-bg-hover:     rgba(5, 10, 25, 0.88);
+  --glass-bg-strong:    rgba(5, 10, 25, 0.95);
+  --glass-bg-overlay:   rgba(5, 10, 25, 0.98);
+  --glass-border:       rgba(255, 255, 255, 0.10);
+  --glass-border-subtle:rgba(255, 255, 255, 0.08);
   --glass-highlight:    rgba(255,255,255, 0.115);
   --glass-shine-top:    rgba(255,255,255, 0.11);
   --glass-blur:         28px;
   --glass-blur-strong:  52px;
-  --glass-saturate:     185%;
+  --glass-saturate:     160%;
+
+  /* ── Custom Gradients ── */
+  --gradient-text-top: linear-gradient(165deg, #ffffff 0% 38%, #bfdbfe 62%, #60a5fa 82%, #2563eb 100%);
+  --gradient-text-bottom: linear-gradient(165deg, #ffffff 0% 32%, #93c5fd 58%, #3b82f6 80%, #1d4ed8 100%);
+  --gradient-radial-glow-blob: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.13) 0%, transparent 70%);
 
   /* ── Glow (restrained — no neon bleed) ───────────────── */
   --primary-glow:       color-mix(in srgb, var(--primary) 18%, transparent);
@@ -308,7 +327,7 @@
 
   .glass-card:hover {
     background: var(--glass-bg-hover);
-    border-color: color-mix(in srgb, var(--primary) 20%, var(--glass-border));
+    border-color: rgba(59, 130, 246, 0.30);
     box-shadow:
       var(--shadow-xl),
       0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent);
@@ -465,21 +484,103 @@
   .scrollbar-none { scrollbar-width: none; }
 
   .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
-  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: #02040a; }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255, 0.12);
+    background: #1e3a8a;
     border-radius: 999px;
-    border: 1.5px solid transparent;
-    background-clip: padding-box;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(255,255,255, 0.22);
-    background-clip: padding-box;
+    background: #3b82f6;
+  }
+
+  /* Global scrollbars mapping to premium tracker colors */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #02040a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e3a8a;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
   }
 
   /* ════════════════════════════════════════════════════════
      ANIMATION UTILITIES
      ════════════════════════════════════════════════════════ */
+
+  /* entrance_loader logo animation over 2.7s */
+  @keyframes logoEntrance {
+    0% {
+      transform: scale(0.85);
+      filter: blur(12px);
+      opacity: 0;
+    }
+    20% {
+      transform: scale(1.05);
+      filter: blur(0px);
+      opacity: 1;
+    }
+    80% {
+      transform: scale(1);
+      filter: blur(0px);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(0.95);
+      filter: blur(8px);
+      opacity: 0;
+    }
+  }
+
+  .animate-logo-entrance {
+    animation: logoEntrance 2.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* brand_title_drop character animation */
+  @keyframes brandCharDrop {
+    0% {
+      transform: translateY(-20px) scale(0.9);
+      filter: blur(8px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0) scale(1);
+      filter: blur(0px);
+      opacity: 1;
+    }
+  }
+
+  .char-drop {
+    display: inline-block;
+    opacity: 0;
+    animation: brandCharDrop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  /* reviews_carousel infinite translation scroll animation */
+  @keyframes marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 30s linear infinite;
+  }
+
+  .marquee-mask {
+    mask-image: linear-gradient(to right, transparent, white 8%, white 92%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, white 8%, white 92%, transparent);
+  }
 
   /* Subtle float for hero elements */
   @keyframes float {

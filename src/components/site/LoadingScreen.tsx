@@ -8,12 +8,7 @@ export function LoadingScreen() {
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[var(--bg-deep)]">
       <CrystalBackground />
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="relative z-10 flex flex-col items-center gap-8"
-      >
+      <div className="relative z-10 flex flex-col items-center gap-8 animate-logo-entrance">
         <GlowContainer intensity="strong" pulse>
           <motion.div
             animate={{ y: [0, -8, 0] }}
@@ -27,7 +22,7 @@ export function LoadingScreen() {
           <p className="font-display text-xl font-bold tracking-tight">Emerite Store</p>
           <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.35em] text-neutral-500">Loading</p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

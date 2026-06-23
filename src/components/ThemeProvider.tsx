@@ -11,10 +11,10 @@ type ThemeColor = {
 
 const themes: Record<string, ThemeColor> = {
   emerald: {
-    name: "Emerald Crystal",
-    primary: "#10D588",
-    accent: "#00E08A",
-    neon: "#5BFFC0",
+    name: "Emerite Blue",
+    primary: "#BFDBFE",
+    accent: "#FFFFFF",
+    neon: "#E0EFFF",
   },
   sky: {
     name: "Sky",

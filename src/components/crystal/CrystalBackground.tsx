@@ -1,12 +1,53 @@
+import { useEffect, useState } from "react";
+import FloatingLines from "./FloatingLines";
+import { useTheme } from "@/components/ThemeProvider";
+
 /**
  * iOS 26-style static backdrop — layered light fields that frosted glass sits on.
- * No animation, no canvas. Pure CSS depth.
+ * Enhanced with interactive animated WebGL floating lines, cyber & glass grid overlays, and mouse glow tracker.
  */
 export function CrystalBackground() {
+  const { theme, themes } = useTheme();
+  const activeTheme = themes[theme] || themes.emerald;
+
+  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+
+  useEffect(() => {
+    const handleMove = (e: PointerEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("pointermove", handleMove);
+    return () => window.removeEventListener("pointermove", handleMove);
+  }, []);
+
   return (
-    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black">
       {/* Base gradient mesh */}
       <div className="absolute inset-0" style={{ background: "var(--bg-mesh)" }} />
+
+      {/* Animated Floating Lines WebGL Backdrop */}
+      <div className="absolute inset-0 opacity-60 pointer-events-none">
+        <FloatingLines 
+          enabledWaves={["top", "middle", "bottom"]}
+          lineCount={8}
+          lineDistance={8}
+          bendRadius={8}
+          bendStrength={-2}
+          interactive
+          parallax={true}
+          animationSpeed={1.8}
+          linesGradient={["#bfdbfe", "#3b82f6", "#1e3a8a"]}
+        />
+      </div>
+
+
+      {/* Interactive Mouse Glow: 450px radius tracking mouse coords */}
+      <div 
+        className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(450px circle at ${mousePos.x}px ${mousePos.y}px, rgba(59, 130, 246, 0.08), transparent 80%)`
+        }}
+      />
 
       {/* Primary light source — top center, wide halo */}
       <div

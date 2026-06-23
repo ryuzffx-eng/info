@@ -1,13 +1,13 @@
 /** Read live theme colors from CSS variables (works after ThemeProvider applies them). */
 export function readThemeColors() {
   if (typeof document === "undefined") {
-    return { primary: "#10D588", accent: "#00E08A", neon: "#5BFFC0" };
+    return { primary: "#BFDBFE", accent: "#FFFFFF", neon: "#E0EFFF" };
   }
   const s = getComputedStyle(document.documentElement);
   return {
-    primary: s.getPropertyValue("--primary").trim() || "#10D588",
-    accent: s.getPropertyValue("--accent").trim() || "#00E08A",
-    neon: s.getPropertyValue("--neon").trim() || "#5BFFC0",
+    primary: s.getPropertyValue("--primary").trim() || "#BFDBFE",
+    accent: s.getPropertyValue("--accent").trim() || "#FFFFFF",
+    neon: s.getPropertyValue("--neon").trim() || "#E0EFFF",
   };
 }
 

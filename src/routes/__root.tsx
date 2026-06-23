@@ -85,19 +85,27 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const [isInitialLoading, setIsInitialLoading] = useState(() => {
-    // Only show the splash screen once per session
     if (typeof window !== "undefined") {
-      return !sessionStorage.getItem("has_seen_splash");
+      return localStorage.getItem("emerite_has_visited") !== "true";
     }
     return true;
   });
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const visited = localStorage.getItem("emerite_has_visited") === "true";
+      if (visited) {
+        document.body.classList.add("no-loader", "no-entrance-animations");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (isInitialLoading) {
       const timer = setTimeout(() => {
         setIsInitialLoading(false);
-        sessionStorage.setItem("has_seen_splash", "true");
-      }, 2000); // 2s for a premium feel
+        localStorage.setItem("emerite_has_visited", "true");
+      }, 2700); // 2.7s logoEntrance duration
       return () => clearTimeout(timer);
     }
   }, [isInitialLoading]);

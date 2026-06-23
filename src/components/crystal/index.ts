@@ -8,3 +8,4 @@ export { GlassButton } from "./GlassButton";
 export { GlassCard } from "./GlassCard";
 export { GlowContainer } from "./GlowContainer";
 export { ParallaxProvider, useParallax } from "./ParallaxContext";
+export { default as FloatingLines } from "./FloatingLines";
