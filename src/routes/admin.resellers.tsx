@@ -18,6 +18,9 @@ function Resellers() {
   const [isAllApps, setIsAllApps] = useState(true);
   const [canCreateCustomKeys, setCanCreateCustomKeys] = useState(false);
   const [canGenLifetime, setCanGenLifetime] = useState(false);
+  const [banData, setBanData] = useState<{ id: number, name: string, isBanned: boolean } | null>(null);
+  const [banReason, setBanReason] = useState("");
+  const [deleteResellerId, setDeleteResellerId] = useState<number | null>(null);
   const [newUserEmail, setNewUserEmail] = useState("");
   const [credits, setCredits] = useState(0);
 
@@ -40,6 +43,30 @@ function Resellers() {
       setNewUserEmail("");
     },
     onError: (err: any) => toast.error(err.message)
+  });
+
+  const banMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number, data: any }) => api.admin.banReseller(id, data),
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-resellers"] });
+      toast.success(res.msg || "Reseller ban status updated");
+      setBanData(null);
+      setBanReason("");
+    },
+    onError: (err: any) => toast.error(err.message)
+  });
+
+  const deleteResellerMutation = useMutation({
+    mutationFn: (id: number) => api.admin.deleteReseller(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-resellers"] });
+      toast.success("Reseller deleted and demoted back to user");
+      setDeleteResellerId(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.message);
+      setDeleteResellerId(null);
+    }
   });
 
   const updateMutation = useMutation({
@@ -111,7 +138,14 @@ function Resellers() {
                           {(r.username || "?").charAt(0)}
                         </div>
                         <div>
-                          <div className="font-bold text-foreground/90 tracking-tight">{r.username}</div>
+                          <div className="font-bold text-foreground/90 tracking-tight flex items-center gap-2">
+                            {r.username}
+                            {r.is_banned && (
+                              <Badge tone="danger" className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 tracking-wider animate-pulse">
+                                Banned
+                              </Badge>
+                            )}
+                          </div>
                           <div className="text-xs text-muted-foreground/60">{r.email}</div>
                         </div>
                       </div>
@@ -168,6 +202,12 @@ function Resellers() {
                           setCanCreateCustomKeys(!!r.permissions?.can_create_custom_keys);
                           setCanGenLifetime(!!r.permissions?.can_gen_lifetime);
                         }}>Permissions</Btn>
+                        <Btn variant="outline" className={r.is_banned ? "text-green-500 hover:text-green-400 border-green-500/20" : "text-yellow-500 hover:text-yellow-400 border-yellow-500/20"} onClick={() => { setBanData({ id: r.id, name: r.username, isBanned: r.is_banned }); setBanReason(r.ban_reason || ""); }}>
+                          {r.is_banned ? "Unban" : "Ban"}
+                        </Btn>
+                        <Btn variant="outline" className="text-red-500 hover:text-red-400 border-red-500/20" onClick={() => setDeleteResellerId(r.id)}>
+                          Delete
+                        </Btn>
                       </div>
                     </td>
                   </tr>
@@ -348,6 +388,61 @@ function Resellers() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Ban Reseller Modal */}
+      <AnimatePresence>
+        {banData && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 p-4 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9 }}
+              className="glass-strong w-full max-w-md rounded-2xl p-7 shadow-2xl bg-card">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold">{banData.isBanned ? "Unban" : "Ban"} Reseller: {banData.name}</h3>
+                <button onClick={() => setBanData(null)} className="rounded-lg p-2 hover:bg-card"><X size={16} /></button>
+              </div>
+              <div className="space-y-4">
+                {banData.isBanned ? (
+                  <p className="text-sm text-muted-foreground">Are you sure you want to unban this reseller? They will regain access to their account immediately.</p>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">Are you sure you want to ban this reseller? Banning will immediately block all their access to the reseller panel and prevent license generation.</p>
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ban Reason (Optional)</label>
+                      <input 
+                        type="text" 
+                        value={banReason} 
+                        onChange={(e) => setBanReason(e.target.value)} 
+                        placeholder="e.g. Violation of terms" 
+                        className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50" 
+                      />
+                    </div>
+                  </>
+                )}
+                <div className="flex gap-3 mt-6">
+                  <Btn variant="outline" className="flex-1 justify-center" onClick={() => setBanData(null)}>Cancel</Btn>
+                  <Btn 
+                    className={`flex-1 justify-center ${banData.isBanned ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"} text-white`} 
+                    onClick={() => banMutation.mutate({ id: banData.id, data: { is_banned: !banData.isBanned, ban_reason: banReason } })}
+                    disabled={banMutation.isPending}
+                  >
+                    {banMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : banData.isBanned ? "Unban" : "Ban"}
+                  </Btn>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete/Demote Reseller Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteResellerId !== null}
+        onClose={() => setDeleteResellerId(null)}
+        onConfirm={() => deleteResellerId && deleteResellerMutation.mutate(deleteResellerId)}
+        loading={deleteResellerMutation.isPending}
+        title="Delete Reseller Status"
+        message="Are you sure you want to delete this reseller? This will remove their credit balance, delete their reseller profile, and demote them back to a standard User role. Their registered user account will NOT be deleted."
+      />
     </div>
   );
 }
