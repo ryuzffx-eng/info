@@ -589,22 +589,24 @@ function GenerateLicenseModal({ isOpen, onClose, onGenerate, loading, apps, prof
                 </div>
               </div>
 
-              <div className="relative z-35">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Custom Key (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="Enter custom key (e.g. MY-SPECIAL-KEY)"
-                  value={customKey}
-                  onChange={(e) => {
-                    setCustomKey(e.target.value);
-                    if (e.target.value.trim() !== "") {
-                      setAmount("1");
-                    }
-                  }}
-                  className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50 font-mono"
-                />
-                <span className="text-[10px] text-muted-foreground block mt-1">Leave empty for auto-generated keys. Custom keys force amount to 1.</span>
-              </div>
+              {(profile?.role === "admin" || profile?.permissions?.can_create_custom_keys) && (
+                <div className="relative z-35 animate-fade-in">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Custom Key (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Enter custom key (e.g. MY-SPECIAL-KEY)"
+                    value={customKey}
+                    onChange={(e) => {
+                      setCustomKey(e.target.value);
+                      if (e.target.value.trim() !== "") {
+                        setAmount("1");
+                      }
+                    }}
+                    className="mt-2 w-full rounded-xl border border-border/60 bg-card/40 p-3 text-sm outline-none focus:border-primary/50 font-mono"
+                  />
+                  <span className="text-[10px] text-muted-foreground block mt-1">Leave empty for auto-generated keys. Custom keys force amount to 1.</span>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4 relative z-25">
                 <div className="relative">

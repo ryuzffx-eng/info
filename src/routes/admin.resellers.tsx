@@ -16,6 +16,8 @@ function Resellers() {
   const [openApps, setOpenApps] = useState<{ id: number, name: string, allowedApps: number[] | null } | null>(null);
   const [tempAllowedApps, setTempAllowedApps] = useState<number[]>([]);
   const [isAllApps, setIsAllApps] = useState(true);
+  const [canCreateCustomKeys, setCanCreateCustomKeys] = useState(false);
+  const [canGenLifetime, setCanGenLifetime] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState("");
   const [credits, setCredits] = useState(0);
 
@@ -82,40 +84,100 @@ function Resellers() {
         <StatCard label="Active Sellers" value={resellers?.filter((r: any) => r.credits > 0).length.toString()} icon={DollarSign} />
       </div>
 
-      <Card className="mt-6">
+      <Card className="mt-6 !p-0 overflow-hidden border-border/40">
         <div className="scrollbar-thin overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-              <tr className="border-b border-border/60">
-                <th className="py-3 pr-4">Reseller</th>
-                <th className="px-4">Email</th>
-                <th className="px-4">Credits</th>
-                <th className="px-4">Joined</th>
-                <th className="pl-4 text-right">Actions</th>
+            <thead className="bg-card/20 text-left text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 border-b border-white/5">
+              <tr>
+                <th className="py-5 px-6 font-display">Reseller</th>
+                <th className="px-6 font-display">Allowed Products</th>
+                <th className="px-6 font-display">Permissions</th>
+                <th className="px-6 font-display">Credits</th>
+                <th className="px-6 font-display">Joined</th>
+                <th className="px-6 text-right font-display">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {resellers?.map((r: any) => (
-                <tr key={r.id} className="border-b border-border/40 hover:bg-card/40">
-                  <td className="py-3 pr-4 font-medium">{r.username}</td>
-                  <td className="px-4 text-xs text-muted-foreground">{r.email}</td>
-                  <td className="px-4"><Badge>{r.credits}</Badge></td>
-                  <td className="px-4 text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
-                  <td className="pl-4">
-                    <div className="flex justify-end gap-1">
-                      <Btn variant="outline" onClick={() => setOpenTopup({ id: r.id, name: r.username })}>Top up</Btn>
-                      <Btn variant="outline" onClick={() => {
-                        setOpenApps({ id: r.id, name: r.username, allowedApps: r.permissions?.allowed_apps || null });
-                        setTempAllowedApps(r.permissions?.allowed_apps || []);
-                        setIsAllApps(!r.permissions?.allowed_apps);
-                      }}>Apps</Btn>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+            <tbody className="divide-y divide-border/40">
+              {resellers?.map((r: any) => {
+                const allowedApps = r.permissions?.allowed_apps;
+                const canCreateCustom = r.permissions?.can_create_custom_keys;
+                const canGenLifetime = r.permissions?.can_gen_lifetime;
+                
+                return (
+                  <tr key={r.id} className="group hover:bg-primary/[0.02] transition-colors">
+                    <td className="py-6 px-6">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold text-sm border border-primary/20 shadow-[0_0_15px_var(--primary-glow)] uppercase">
+                          {(r.username || "?").charAt(0)}
+                        </div>
+                        <div>
+                          <div className="font-bold text-foreground/90 tracking-tight">{r.username}</div>
+                          <div className="text-xs text-muted-foreground/60">{r.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6">
+                      {!allowedApps ? (
+                        <Badge tone="success" className="text-[9px] font-bold uppercase tracking-wider">All Products</Badge>
+                      ) : allowedApps.length === 0 ? (
+                        <Badge tone="danger" className="text-[9px] font-bold uppercase tracking-wider">No Products</Badge>
+                      ) : (
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {allowedApps.map((id: number) => {
+                            const app = applications?.find((a: any) => a.id === id);
+                            return (
+                              <Badge key={id} tone="primary" className="text-[9px] px-1.5 py-0.5 font-bold uppercase tracking-wider">
+                                {app ? app.app_name : `App ${id}`}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6">
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`inline-block h-2 w-2 rounded-full ${canCreateCustom ? "bg-primary shadow-[0_0_8px_var(--primary)]" : "bg-zinc-600"}`} />
+                          <span className="text-xs font-semibold text-foreground/80">Custom Keys: {canCreateCustom ? "Yes" : "No"}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`inline-block h-2 w-2 rounded-full ${canGenLifetime ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" : "bg-zinc-600"}`} />
+                          <span className="text-xs font-semibold text-foreground/80">Lifetime Keys: {canGenLifetime ? "Yes" : "No"}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6">
+                      <Badge tone={r.credits > 0 ? "success" : "muted"} className="font-bold px-3 py-1 text-xs">
+                        {r.credits}
+                      </Badge>
+                    </td>
+                    <td className="px-6 text-muted-foreground font-medium">
+                      {new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td className="px-6">
+                      <div className="flex justify-end gap-2">
+                        <Btn variant="outline" onClick={() => setOpenTopup({ id: r.id, name: r.username })}>Top up</Btn>
+                        <Btn variant="outline" onClick={() => {
+                          setOpenApps({ 
+                            id: r.id, 
+                            name: r.username, 
+                            allowedApps: r.permissions?.allowed_apps || null 
+                          });
+                          setTempAllowedApps(r.permissions?.allowed_apps || []);
+                          setIsAllApps(!r.permissions?.allowed_apps);
+                          setCanCreateCustomKeys(!!r.permissions?.can_create_custom_keys);
+                          setCanGenLifetime(!!r.permissions?.can_gen_lifetime);
+                        }}>Permissions</Btn>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {resellers?.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-muted-foreground">No resellers found</td>
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground">
+                    No resellers found
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -175,53 +237,110 @@ function Resellers() {
         )}
       </AnimatePresence>
 
-      {/* App Permissions Modal */}
+      {/* App & Feature Permissions Modal */}
       <AnimatePresence>
         {openApps && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
             className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 p-4 backdrop-blur-md">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9 }}
-              className="glass-strong w-full max-w-md rounded-2xl p-7 shadow-2xl">
+              className="glass-strong w-full max-w-md rounded-2xl p-7 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-thin">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold">App Access: {openApps.name}</h3>
+                <h3 className="text-xl font-bold">Permissions: {openApps.name}</h3>
                 <button onClick={() => setOpenApps(null)} className="rounded-lg p-2 hover:bg-card"><X size={16} /></button>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 rounded-xl border border-border/40 bg-card/20">
-                  <span className="text-sm font-medium">Access to all applications</span>
-                  <input type="checkbox" checked={isAllApps} onChange={(e) => {
-                    setIsAllApps(e.target.checked);
-                    if (e.target.checked) {
-                      setTempAllowedApps([]);
-                    }
-                  }} className="h-4 w-4 rounded border-border/60 text-primary accent-primary" />
+              <div className="space-y-6">
+                
+                {/* Feature Permissions Section */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Allowed Features</h4>
+                  
+                  <div className="flex items-center justify-between p-3.5 rounded-xl border border-border/45 bg-card/20">
+                    <div>
+                      <span className="text-sm font-semibold block text-white/95">Allow Custom Keys</span>
+                      <span className="text-[10px] text-muted-foreground block mt-0.5">Let reseller input custom license strings</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCanCreateCustomKeys(!canCreateCustomKeys)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                        canCreateCustomKeys ? "bg-primary" : "bg-zinc-700"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          canCreateCustomKeys ? "translate-x-4.5" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3.5 rounded-xl border border-border/45 bg-card/20">
+                    <div>
+                      <span className="text-sm font-semibold block text-white/95">Allow Lifetime Keys</span>
+                      <span className="text-[10px] text-muted-foreground block mt-0.5">Let reseller generate keys &gt; 3650 days</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCanGenLifetime(!canGenLifetime)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                        canGenLifetime ? "bg-primary" : "bg-zinc-700"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          canGenLifetime ? "translate-x-4.5" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
 
-                {!isAllApps && (
-                  <div className="space-y-2 mt-4 max-h-60 overflow-y-auto scrollbar-thin pr-1">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Select Allowed Applications</label>
-                    {applications?.map((app: any) => {
-                      const checked = tempAllowedApps.includes(app.id);
-                      return (
-                        <div key={app.id} className="flex items-center justify-between p-3 rounded-xl border border-border/40 bg-card/10 hover:bg-card/30 transition-colors">
-                          <span className="text-sm">{app.app_name} <span className="text-xs text-muted-foreground">(v{app.app_version})</span></span>
-                          <input type="checkbox" checked={checked} onChange={() => {
-                            if (checked) {
-                              setTempAllowedApps(tempAllowedApps.filter(id => id !== app.id));
-                            } else {
-                              setTempAllowedApps([...tempAllowedApps, app.id]);
-                            }
-                          }} className="h-4 w-4 rounded border-border/60 text-primary accent-primary" />
-                        </div>
-                      );
-                    })}
-                    {applications?.length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-4">No active applications found</p>
-                    )}
+                {/* Product Access Section */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Product Access</h4>
+                  
+                  <div className="flex items-center justify-between p-3.5 rounded-xl border border-border/45 bg-card/20">
+                    <span className="text-sm font-semibold text-white/95">Access to all applications</span>
+                    <input type="checkbox" checked={isAllApps} onChange={(e) => {
+                      setIsAllApps(e.target.checked);
+                      if (e.target.checked) {
+                        setTempAllowedApps([]);
+                      }
+                    }} className="h-4 w-4 rounded border-border/60 text-primary accent-primary" />
                   </div>
-                )}
 
-                <Btn className="w-full justify-center py-6 mt-6" onClick={() => updateMutation.mutate({ id: openApps.id, data: { allowed_apps: isAllApps ? null : tempAllowedApps } })} disabled={updateMutation.isPending}>
+                  {!isAllApps && (
+                    <div className="space-y-2 mt-2 max-h-48 overflow-y-auto scrollbar-thin pr-1">
+                      {applications?.map((app: any) => {
+                        const checked = tempAllowedApps.includes(app.id);
+                        return (
+                          <div key={app.id} className="flex items-center justify-between p-3 rounded-xl border border-border/40 bg-card/10 hover:bg-card/30 transition-colors">
+                            <span className="text-xs font-medium">{app.app_name} <span className="text-[10px] text-muted-foreground">(v{app.app_version})</span></span>
+                            <input type="checkbox" checked={checked} onChange={() => {
+                              if (checked) {
+                                setTempAllowedApps(tempAllowedApps.filter(id => id !== app.id));
+                              } else {
+                                setTempAllowedApps([...tempAllowedApps, app.id]);
+                              }
+                            }} className="h-4 w-4 rounded border-border/60 text-primary accent-primary" />
+                          </div>
+                        );
+                      })}
+                      {applications?.length === 0 && (
+                        <p className="text-xs text-muted-foreground text-center py-4">No active applications found</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <Btn className="w-full justify-center py-6 mt-6" onClick={() => updateMutation.mutate({ 
+                  id: openApps.id, 
+                  data: { 
+                    allowed_apps: isAllApps ? null : tempAllowedApps,
+                    can_create_custom_keys: canCreateCustomKeys,
+                    can_gen_lifetime: canGenLifetime
+                  } 
+                })} disabled={updateMutation.isPending}>
                   {updateMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : "Save Permissions"}
                 </Btn>
               </div>
